@@ -1,0 +1,113 @@
+// datasource db
+datasource db {
+  provider = "postgresql" // или "mysql", "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// МОДЕЛ ЗА ПОТРЕБИТЕЛ (User)
+// ----------------------------------------------------
+model User {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  name             String?
+  credits          Int           @default(5) // Начални безплатни кредити или 0
+  stripeCustomerId String?       @unique // Stripe Customer ID за свързване
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Релации
+  transactions     Transaction[]
+  videoRenders     VideoRender[]
+
+  @@map("users")
+}
+
+// ----------------------------------------------------
+// МОДЕЛ ЗА ПАКЕТИ С КРЕДИТИ (CreditPackage)
+// ----------------------------------------------------
+model CreditPackage {
+  id            String        @id @default(uuid())
+  key           String        @unique // напр. "small", "large"
+  name          String        // напр. "Малък пакет (50 кредита)"
+  description   String?
+  credits       Int           // Брой кредити (напр. 50 или 200)
+  priceInCents  Int           // Цена в стотинки/центове (напр. 999 = 9.99 EUR)
+  currency      String        @default("eur")
+  stripePriceId String?       // Опционален предварително създаден Price ID в Stripe
+  active        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  transactions  Transaction[]
+
+  @@map("credit_packages")
+}
+
+// ----------------------------------------------------
+// МОДЕЛ ЗА ТРАНЗАКЦИИ / ПЛАЩАНИЯ (Transaction)
+// Записва всяко плащане от Stripe за одит и предотвратяване на дублиране (Idempotency)
+// ----------------------------------------------------
+model Transaction {
+  id              String        @id @default(uuid())
+  userId          String
+  packageId       String?
+  stripeSessionId String        @unique // Checkout Session ID (cs_test_...) за уникалност
+  stripePaymentId String?       // PaymentIntent ID (pi_...)
+  amountPaid      Int           // Платена сума в центове
+  currency        String        @default("eur")
+  creditsAdded    Int           // Добавени кредити
+  status          PaymentStatus @default(PENDING) // PENDING, COMPLETED, FAILED
+  metadata        Json?         // Допълнителни данни от Stripe
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Връзка с потребителя и пакета
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package         CreditPackage? @relation(fields: [packageId], references: [id])
+
+  @@index([userId])
+  @@map("transactions")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+// ----------------------------------------------------
+// МОДЕЛ ЗА ЗАЯВКИ ЗА ВИДЕО ГЕНЕРИРАНЕ (VideoRender)
+// Проследява задачите към Viggle AI API (V1)
+// ----------------------------------------------------
+model VideoRender {
+  id              String       @id @default(uuid())
+  userId          String
+  renderId        String       @unique // ID, върнато от Viggle AI (/v1/renders)
+  imageUrl        String       // URL на входната снимка (човек/герой)
+  motionVideoUrl  String       // URL на видеото с движение (motion source)
+  status          RenderStatus @default(PROCESSING) // PROCESSING, COMPLETED, FAILED
+  progress        Int          @default(0) // Прогрес в % (0 - 100)
+  videoUrl        String?      // URL към готовото видео, върнато от Viggle
+  creditsUsed     Int          @default(1) // Консумирани кредити
+  errorMessage    String?      // Ако задачата се провали
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Връзка с потребителя
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([renderId])
+  @@map("video_renders")
+}
+
+enum RenderStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
