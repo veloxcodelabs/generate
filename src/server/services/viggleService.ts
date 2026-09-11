@@ -71,9 +71,14 @@ function resolveLocalUpload(urlOrPath: string): string | null {
   if (!urlOrPath) return null;
   const match = urlOrPath.match(/\/uploads\/([^/?#]+)/);
   if (match) {
-    const filePath = path.join(process.cwd(), 'uploads', match[1]);
-    if (fs.existsSync(filePath)) {
-      return filePath;
+    const filename = match[1];
+    const defaultPath = path.join(process.cwd(), 'uploads', filename);
+    if (fs.existsSync(defaultPath)) {
+      return defaultPath;
+    }
+    const tmpPath = path.join('/tmp', 'uploads', filename);
+    if (fs.existsSync(tmpPath)) {
+      return tmpPath;
     }
   }
   return null;

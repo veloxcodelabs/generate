@@ -11,9 +11,17 @@ import fs from 'fs';
 export const uploadRouter = Router();
 
 // Осигуряваме съществуването на директорията за качени файлове
-const uploadsDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// На Vercel Serverless process.cwd() е read-only, затова използваме /tmp/uploads
+const uploadsDir = process.env.VERCEL
+  ? path.join('/tmp', 'uploads')
+  : path.join(process.cwd(), 'uploads');
+
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[UploadRouter] Предупреждение при създаване на uploads директория:', err);
 }
 
 // Конфигуриране на дисковото съхранение с Multer
