@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Check, Sparkles, ArrowRight, ShieldCheck, RefreshCw, AlertCircle, FileText } from 'lucide-react';
+import { CreditCard, Check, Sparkles, ShieldCheck, RefreshCw, AlertCircle, FileText } from 'lucide-react';
 import { safeFetchJson } from '../utils/apiHelper.ts';
+import { useLanguage } from '../i18n/LanguageContext.tsx';
 
 interface StripeCreditsProps {
   userId: string;
@@ -8,6 +9,7 @@ interface StripeCreditsProps {
 }
 
 export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditChange }) => {
+  const { t, language } = useLanguage();
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null);
   const [webhookMessage, setWebhookMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
       });
 
       if (!response.ok || !response.data) {
-        throw new Error(response.error || 'Грешка при създаване на платежна сесия.');
+        throw new Error(response.error || (language === 'bg' ? 'Грешка при създаване на платежна сесия.' : 'Error creating checkout session.'));
       }
 
       const data = response.data;
@@ -54,11 +56,13 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
         window.open(data.checkoutUrl, '_blank');
       } else {
         setWebhookMessage(
-          `Генерирана е Stripe Checkout сесия: ${data.sessionId}. Кредитите ще бъдат начислени автоматично след успешно плащане.`
+          language === 'bg'
+            ? `Генерирана е Stripe Checkout сесия: ${data.sessionId}. Кредитите ще бъдат начислени автоматично след плащане.`
+            : `Stripe Checkout session generated: ${data.sessionId}. Credits will be applied automatically upon completion.`
         );
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Възникна грешка при обработка на плащането.');
+      setErrorMessage(err.message || (language === 'bg' ? 'Възникна грешка при обработка на плащането.' : 'An error occurred processing the payment.'));
     } finally {
       setLoadingPkg(null);
     }
@@ -72,17 +76,15 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Stripe Checkout & Webhooks
+                {t.stripe.badge}
               </span>
-              <span className="text-xs text-slate-400">Автоматично начисляване на кредити</span>
+              <span className="text-xs text-slate-400">{t.stripe.headerDesc}</span>
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">
-              Закупуване на пакети с кредити (Малка и Голяма опция)
+              {t.stripe.title}
             </h2>
             <p className="text-sm text-slate-300 max-w-2xl mt-1">
-              При завършване на покупката, Stripe изпраща криптографски подписано събитие{' '}
-              <code className="text-amber-300">checkout.session.completed</code> към{' '}
-              <code className="text-indigo-300">POST /api/stripe/webhook</code>, което автоматично добавя кредитите в профила на потребителя.
+              {t.stripe.subtitle}
             </p>
           </div>
         </div>
@@ -95,32 +97,32 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-700">
-                Малък пакет (Starter)
+                {t.stripe.starterTitle}
               </span>
-              <span className="text-xs font-medium text-slate-500">50 видеа</span>
+              <span className="text-xs font-medium text-slate-500">50 {t.common.credits}</span>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-1">50 Кредита</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-1">{t.stripe.starterCredits}</h3>
             <p className="text-xs text-slate-500 mb-4">
-              Идеален пакет за бързи тестове и генериране на единични видео анимации.
+              {t.stripe.starterDesc}
             </p>
 
             <div className="flex items-baseline gap-1 mb-6">
               <span className="text-4xl font-extrabold text-slate-900">$9.99</span>
-              <span className="text-xs text-slate-500 font-medium">/ еднократно</span>
+              <span className="text-xs text-slate-500 font-medium">/ {language === 'bg' ? 'еднократно' : 'one-time'}</span>
             </div>
 
             <ul className="space-y-2.5 text-xs text-slate-600 mb-6">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>50 пълни AI видео рендера</span>
+                <span>{t.stripe.starterFeature1}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Незабавно начисляване през Stripe Webhook</span>
+                <span>{t.stripe.starterFeature2}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Кредитите не изтичат във времето</span>
+                <span>{t.stripe.starterFeature3}</span>
               </li>
             </ul>
           </div>
@@ -137,7 +139,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
               ) : (
                 <>
                   <CreditCard className="w-4 h-4" />
-                  Купи Малък Пакет ($9.99)
+                  {t.stripe.buyStarter}
                 </>
               )}
             </button>
@@ -149,44 +151,40 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
           <div className="absolute -top-3 right-6">
             <span className="px-3 py-1 text-xs font-bold rounded-full bg-indigo-600 text-white shadow-sm flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
-              Най-изгоден (-25%)
+              {t.stripe.popular} (-25%)
             </span>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="px-3 py-1 text-xs font-bold rounded-full bg-indigo-50 text-indigo-700">
-                Голям пакет (Pro Creator)
+                {t.stripe.proTitle}
               </span>
-              <span className="text-xs font-medium text-slate-500">200 видеа</span>
+              <span className="text-xs font-medium text-slate-500">200 {t.common.credits}</span>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-1">200 Кредита</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-1">{t.stripe.proCredits}</h3>
             <p className="text-xs text-slate-500 mb-4">
-              Максимална стойност за сериозни проекти, създатели на съдържание и студия.
+              {t.stripe.proDesc}
             </p>
 
             <div className="flex items-baseline gap-1 mb-6">
               <span className="text-4xl font-extrabold text-indigo-600">$29.99</span>
               <span className="text-xs text-slate-500 line-through ml-1">$39.99</span>
-              <span className="text-xs text-slate-500 font-medium">/ еднократно</span>
+              <span className="text-xs text-slate-500 font-medium">/ {language === 'bg' ? 'еднократно' : 'one-time'}</span>
             </div>
 
             <ul className="space-y-2.5 text-xs text-slate-600 mb-6">
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>200 пълни AI видео рендера</span>
+                <span>{t.stripe.proFeature1}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Приоритетна обработка на рендерите</span>
+                <span>{t.stripe.proFeature2}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Спестявате 25% спрямо малкия пакет</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span>Пълна фактура и Stripe транзакция</span>
+                <span>{t.stripe.proFeature3}</span>
               </li>
             </ul>
           </div>
@@ -203,7 +201,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
               ) : (
                 <>
                   <CreditCard className="w-4 h-4" />
-                  Купи Голям Пакет ($29.99)
+                  {t.stripe.buyPro}
                 </>
               )}
             </button>
@@ -222,7 +220,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
             onClick={() => setErrorMessage(null)}
             className="text-rose-600 hover:text-rose-800 text-xs px-2 py-1 rounded"
           >
-            Затвори
+            {t.common.close}
           </button>
         </div>
       )}
@@ -237,7 +235,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
             onClick={() => setWebhookMessage(null)}
             className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded"
           >
-            Затвори
+            {t.common.close}
           </button>
         </div>
       )}
@@ -246,25 +244,31 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
       <div className="max-w-4xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-6">
         <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-3">
           <ShieldCheck className="w-4 h-4 text-indigo-600" />
-          Архитектура на Stripe Webhook & Криптографска сигурност
+          {language === 'bg' ? 'Архитектура на Stripe Webhook & Криптографска сигурност' : 'Stripe Webhook Architecture & Cryptographic Security'}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600">
           <div className="p-3 bg-white rounded-xl border border-slate-200">
             <div className="font-semibold text-slate-900 mb-1">1. Raw Body Middleware</div>
             <p className="text-slate-500 leading-relaxed">
-              Маршрутът <code>/api/stripe/webhook</code> използва <code>express.raw()</code> преди <code>express.json()</code>, за да се запази байтовият масив за валидиране на подписа.
+              {language === 'bg'
+                ? 'Маршрутът /api/stripe/webhook използва express.raw() преди express.json(), за да се запази байтовият масив за валидиране на подписа.'
+                : 'The /api/stripe/webhook endpoint uses express.raw() before JSON parsing to preserve exact payload bytes for cryptographic signature verification.'}
             </p>
           </div>
           <div className="p-3 bg-white rounded-xl border border-slate-200">
             <div className="font-semibold text-slate-900 mb-1">2. Signature Verification</div>
             <p className="text-slate-500 leading-relaxed">
-              Използва се <code>stripe.webhooks.constructEvent(body, sig, secret)</code>. Ако подписът е невалиден, заявката се отхвърля веднага с код 400.
+              {language === 'bg'
+                ? 'Използва се stripe.webhooks.constructEvent(body, sig, secret). Ако подписът е невалиден, заявката се отхвърля с код 400.'
+                : 'Uses stripe.webhooks.constructEvent(body, sig, secret). If signature mismatch occurs, requests are rejected with status 400.'}
             </p>
           </div>
           <div className="p-3 bg-white rounded-xl border border-slate-200">
-            <div className="font-semibold text-slate-900 mb-1">3. Идемпотентност (Idempotency)</div>
+            <div className="font-semibold text-slate-900 mb-1">3. Idempotency Guard</div>
             <p className="text-slate-500 leading-relaxed">
-              Всяка сесия се записва в таблица <code>Transaction</code> по <code>stripeSessionId</code>. При повторен уебхук кредити не се начисляват повторно.
+              {language === 'bg'
+                ? 'Всяка сесия се записва в базата данни по stripeSessionId. При повторен уебхук кредити не се начисляват дублирано.'
+                : 'Each session is indexed in the database by stripeSessionId, ensuring duplicate webhooks will never double-credit users.'}
             </p>
           </div>
         </div>
@@ -275,13 +279,13 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <FileText className="w-4 h-4 text-indigo-600" />
-            История на плащанията (Транзакции в базата данни)
+            {t.stripe.historyTitle}
           </h4>
           <button
             onClick={fetchTransactions}
-            className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
           >
-            <RefreshCw className="w-3 h-3" /> Опресни
+            <RefreshCw className="w-3 h-3" /> {t.common.refresh}
           </button>
         </div>
 
@@ -291,11 +295,11 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
               <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase text-[10px] tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3">Session ID</th>
-                  <th className="py-2.5 px-3">Пакет</th>
-                  <th className="py-2.5 px-3">Сума</th>
-                  <th className="py-2.5 px-3">Кредити</th>
-                  <th className="py-2.5 px-3">Статус</th>
-                  <th className="py-2.5 px-3">Дата</th>
+                  <th className="py-2.5 px-3">{t.stripe.colPackage}</th>
+                  <th className="py-2.5 px-3">{t.stripe.colAmount}</th>
+                  <th className="py-2.5 px-3">{t.stripe.colCredits}</th>
+                  <th className="py-2.5 px-3">{t.stripe.colStatus}</th>
+                  <th className="py-2.5 px-3">{t.stripe.colDate}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -312,14 +316,14 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
                         {tx.status}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-slate-400">{new Date(tx.createdAt).toLocaleDateString('bg-BG')}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{new Date(tx.createdAt).toLocaleDateString(language === 'bg' ? 'bg-BG' : 'en-US')}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-xs text-slate-400 py-4 text-center">Няма записани транзакции за този потребител.</p>
+          <p className="text-xs text-slate-400 py-4 text-center">{t.stripe.emptyHistory}</p>
         )}
       </div>
     </div>

@@ -110,19 +110,43 @@ class InMemoryDatabase {
     return null;
   }
 
-  async createUser(data: { id?: string; email: string; name?: string; credits?: number }): Promise<User> {
+  async createUser(data: {
+    id?: string;
+    email: string;
+    name?: string;
+    credits?: number;
+    avatarUrl?: string;
+    authProvider?: 'google' | 'email' | 'demo';
+    passwordHash?: string;
+  }): Promise<User> {
     const id = data.id || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const newUser: User = {
       id,
       email: data.email,
-      name: data.name || 'Потребител',
-      credits: data.credits ?? 5,
+      name: data.name || (data.email.split('@')[0] || 'Потребител'),
+      credits: data.credits ?? 10,
+      avatarUrl: data.avatarUrl,
+      authProvider: data.authProvider || 'email',
+      passwordHash: data.passwordHash,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     this.users.set(id, newUser);
     this.persist();
     return newUser;
+  }
+
+  async updateUserProfile(userId: string, updates: Partial<User>): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) throw new Error(`Потребител с ID "${userId}" не е намерен.`);
+    const updated = {
+      ...user,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    this.users.set(userId, updated);
+    this.persist();
+    return updated;
   }
 
   async getOrCreateDefaultUser(): Promise<User> {

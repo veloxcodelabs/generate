@@ -129,12 +129,16 @@ export function createExpressApp() {
   // в случай, че прокси или Vercel rewrite премахне префикса /api.
   app.use('/api', viggleRouter);
   app.use('/api', uploadRouter);
+  app.use('/api', userRouter);
+  app.use('/api/auth', userRouter);
   app.use('/api/stripe', stripeRouter);
   app.use('/api/user', userRouter);
 
   // Резервни маршрути
   app.use(viggleRouter);
   app.use(uploadRouter);
+  app.use(userRouter);
+  app.use('/auth', userRouter);
   app.use('/stripe', stripeRouter);
   app.use('/user', userRouter);
 

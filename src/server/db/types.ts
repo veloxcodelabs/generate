@@ -7,6 +7,9 @@ export interface User {
   email: string;
   name: string;
   credits: number;
+  avatarUrl?: string;
+  authProvider?: 'google' | 'email' | 'demo';
+  passwordHash?: string;
   stripeCustomerId?: string;
   createdAt: string;
   updatedAt: string;
