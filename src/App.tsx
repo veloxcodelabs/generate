@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { ViggleStudio } from './components/ViggleStudio.tsx';
 import { StripeCredits } from './components/StripeCredits.tsx';
+import { safeFetchJson } from './utils/apiHelper.ts';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'viggle' | 'stripe'>('viggle');
@@ -21,21 +22,19 @@ export default function App() {
   const fetchUserData = async () => {
     try {
       // 1. Проверка на health статуса
-      const healthRes = await fetch('/api/health');
-      if (healthRes.ok) {
-        const healthData = await healthRes.json();
-        setIsStripeConfigured(Boolean(healthData.stripeConfigured));
-        setIsViggleConfigured(Boolean(healthData.viggleConfigured));
+      const healthResponse = await safeFetchJson<{ stripeConfigured?: boolean; viggleConfigured?: boolean }>('/api/health');
+      if (healthResponse.ok && healthResponse.data) {
+        setIsStripeConfigured(Boolean(healthResponse.data.stripeConfigured));
+        setIsViggleConfigured(Boolean(healthResponse.data.viggleConfigured));
       }
 
       // 2. Вземане на текущ потребител
-      const userRes = await fetch(`/api/user/me?userId=${encodeURIComponent(userId)}`);
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        if (userData.user) {
-          setCredits(userData.user.credits);
-          setUserName(userData.user.name || 'Мартин');
-        }
+      const userResponse = await safeFetchJson<{ user?: { credits: number; name?: string } }>(
+        `/api/user/me?userId=${encodeURIComponent(userId)}`
+      );
+      if (userResponse.ok && userResponse.data?.user) {
+        setCredits(userResponse.data.user.credits);
+        setUserName(userResponse.data.user.name || 'Мартин');
       }
     } catch (err) {
       console.error('Грешка при зареждане на потребителски данни:', err);
@@ -51,14 +50,13 @@ export default function App() {
   // Спомагателно възстановяване на кредити за лесно тестване в предварителен преглед
   const handleResetCredits = async () => {
     try {
-      const res = await fetch('/api/user/reset-credits', {
+      const response = await safeFetchJson<{ user: { credits: number } }>('/api/user/reset-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, credits: 10 }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setCredits(data.user.credits);
+      if (response.ok && response.data?.user) {
+        setCredits(response.data.user.credits);
       }
     } catch (e) {
       console.error(e);

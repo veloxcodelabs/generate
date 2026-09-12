@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Check, Sparkles, ArrowRight, ShieldCheck, RefreshCw, AlertCircle, FileText } from 'lucide-react';
+import { safeFetchJson } from '../utils/apiHelper.ts';
 
 interface StripeCreditsProps {
   userId: string;
@@ -9,15 +10,15 @@ interface StripeCreditsProps {
 export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditChange }) => {
   const [loadingPkg, setLoadingPkg] = useState<string | null>(null);
   const [webhookMessage, setWebhookMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [lastSession, setLastSession] = useState<any | null>(null);
 
   const fetchTransactions = async () => {
     try {
-      const res = await fetch(`/api/user/transactions?userId=${encodeURIComponent(userId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setTransactions(data.transactions || []);
+      const response = await safeFetchJson<{ transactions: any[] }>(`/api/user/transactions?userId=${encodeURIComponent(userId)}`);
+      if (response.ok && response.data) {
+        setTransactions(response.data.transactions || []);
       }
     } catch (e) {
       console.error(e);
@@ -32,17 +33,20 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
   const handleBuyPackage = async (packageKey: 'small' | 'large') => {
     setLoadingPkg(packageKey);
     setWebhookMessage(null);
+    setErrorMessage(null);
 
     try {
-      const res = await fetch('/api/stripe/create-checkout-session', {
+      const response = await safeFetchJson<any>('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, packageKey }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Грешка при създаване на сесия.');
+      if (!response.ok || !response.data) {
+        throw new Error(response.error || 'Грешка при създаване на платежна сесия.');
+      }
 
+      const data = response.data;
       setLastSession(data);
 
       if (!data.isSimulated && data.checkoutUrl) {
@@ -54,7 +58,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
         );
       }
     } catch (err: any) {
-      alert(err.message || 'Възникна грешка.');
+      setErrorMessage(err.message || 'Възникна грешка при обработка на плащането.');
     } finally {
       setLoadingPkg(null);
     }
@@ -208,6 +212,21 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
       </div>
 
       {/* Webhook Feedback Message */}
+      {errorMessage && (
+        <div className="max-w-4xl mx-auto p-4 rounded-xl bg-rose-50 text-rose-700 text-sm border border-rose-200 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-rose-600 hover:text-rose-800 text-xs px-2 py-1 rounded"
+          >
+            Затвори
+          </button>
+        </div>
+      )}
+
       {webhookMessage && (
         <div className="max-w-4xl mx-auto p-4 rounded-xl bg-slate-900 text-emerald-400 text-xs font-mono border border-slate-700 shadow-md flex items-center justify-between">
           <div className="flex items-center gap-2">

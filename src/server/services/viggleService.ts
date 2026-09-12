@@ -153,14 +153,20 @@ export class ViggleService {
         const formData = new FormData();
 
         if (localImageFile) {
-          const blob = await fs.openAsBlob(localImageFile);
+          const fileBuffer = await fs.promises.readFile(localImageFile);
+          const ext = path.extname(localImageFile).toLowerCase();
+          const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+          const blob = new Blob([fileBuffer], { type: mime });
           formData.append('image', blob, path.basename(localImageFile));
         } else {
           formData.append('image_url', cleanImageUrl);
         }
 
         if (localMotionFile) {
-          const blob = await fs.openAsBlob(localMotionFile);
+          const fileBuffer = await fs.promises.readFile(localMotionFile);
+          const ext = path.extname(localMotionFile).toLowerCase();
+          const mime = ext === '.webm' ? 'video/webm' : ext === '.mov' ? 'video/quicktime' : 'video/mp4';
+          const blob = new Blob([fileBuffer], { type: mime });
           formData.append('motion_video', blob, path.basename(localMotionFile));
         } else {
           formData.append('motion_video_url', cleanMotionVideoUrl);

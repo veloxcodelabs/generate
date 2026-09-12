@@ -5,6 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Upload, Image as ImageIcon, Video, X, CheckCircle2, Loader2, Link as LinkIcon, Film } from 'lucide-react';
+import { safeFetchJson } from '../utils/apiHelper.ts';
 
 interface MediaUploaderProps {
   id: string;
@@ -46,6 +47,15 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   };
 
   const uploadFile = async (file: File) => {
+    // Vercel Serverless лимитът за заявка е 4.5 MB
+    const maxVercelBytes = 4.5 * 1024 * 1024;
+    if (file.size > maxVercelBytes) {
+      setUploadError(
+        `Файлът е с размер ${formatBytes(file.size)}. Vercel Serverless има лимит до 4.5 MB за директно качване. Моля, компресирайте файла или превключете на таб "Интернет URL" и поставете директен линк.`
+      );
+      return;
+    }
+
     setIsUploading(true);
     setUploadError(null);
     setFileName(file.name);
@@ -55,17 +65,16 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
+      const response = await safeFetchJson<{ url: string; error?: string }>('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Грешка при качване на файла.');
+      if (!response.ok || !response.data?.url) {
+        throw new Error(response.error || 'Грешка при качване на файла.');
       }
 
-      onChange(data.url);
+      onChange(response.data.url);
     } catch (err: any) {
       console.error('Грешка при качване:', err);
       setUploadError(err.message || 'Неуспешно качване на файла.');

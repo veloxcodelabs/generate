@@ -67,7 +67,8 @@ export function createExpressApp() {
   app.use(express.urlencoded({ extended: true }));
 
   // --------------------------------------------------------------------------
-  // 3. HEALTH CHECK ЕНДПОЙНТ
+  // --------------------------------------------------------------------------
+  // 3. HEALTH CHECK & UPLOADS STATIC SERVING
   // --------------------------------------------------------------------------
   const healthHandler = (_req: Request, res: Response) => {
     res.json({
@@ -82,6 +83,31 @@ export function createExpressApp() {
 
   app.get('/api/health', healthHandler);
   app.get('/health', healthHandler);
+
+  // Директен ендпойнт за извличане на качен файл от диск (/tmp/uploads или ./uploads)
+  const serveUploadFile = (req: Request, res: Response) => {
+    const filename = path.basename(req.params.filename || '');
+    if (!filename) {
+      return res.status(400).json({ error: 'Липсва име на файл.' });
+    }
+    const possiblePaths = [
+      path.join('/tmp', 'uploads', filename),
+      path.join(process.cwd(), 'uploads', filename),
+    ];
+    for (const p of possiblePaths) {
+      try {
+        if (fs.existsSync(p)) {
+          return res.sendFile(p);
+        }
+      } catch {
+        // продължаваме към следващия възможен път
+      }
+    }
+    return res.status(404).json({ error: `Файлът "${filename}" не беше намерен.` });
+  };
+
+  app.get('/uploads/:filename', serveUploadFile);
+  app.get('/api/uploads/:filename', serveUploadFile);
 
   // --------------------------------------------------------------------------
   // 4. API МАРШРУТИ
@@ -99,8 +125,35 @@ export function createExpressApp() {
   app.use('/stripe', stripeRouter);
   app.use('/user', userRouter);
 
+  // --------------------------------------------------------------------------
+  // 5. JSON 404 & ГЛОБАЛЕН ERROR HANDLER (Express Никога не връща HTML грешки)
+  // --------------------------------------------------------------------------
+  app.use('/api', (req: Request, res: Response) => {
+    res.status(404).json({
+      error: `API маршрутът не е намерен: ${req.method} ${req.originalUrl || req.url}`,
+    });
+  });
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('[Express Global Error]:', err);
+    if (!res.headersSent) {
+      const statusCode = typeof err.statusCode === 'number' && err.statusCode >= 400 ? err.statusCode : 500;
+      res.status(statusCode).json({
+        error: err.message || 'Възникна сървърна грешка при обработка на заявката.',
+        details: err.details || (process.env.NODE_ENV === 'production' ? undefined : err.stack),
+      });
+    }
+  });
+
   return app;
 }
 
 export const app = createExpressApp();
-export default app;
+
+/**
+ * Главен експорт съвместим с Vercel Serverless Functions (@vercel/node)
+ * и стандартен Express middleware.
+ */
+export default function handler(req: any, res: any) {
+  return app(req, res);
+}

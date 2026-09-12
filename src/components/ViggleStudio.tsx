@@ -19,6 +19,7 @@ import {
   Wand2,
 } from 'lucide-react';
 import { MediaUploader } from './MediaUploader.tsx';
+import { safeFetchJson } from '../utils/apiHelper.ts';
 
 interface ViggleStudioProps {
   credits: number;
@@ -143,10 +144,9 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
   // Зареждане на историята от сървъра
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`/api/videos?userId=${encodeURIComponent(userId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        const videos = data.videos || [];
+      const response = await safeFetchJson<{ videos: VideoRenderItem[] }>(`/api/videos?userId=${encodeURIComponent(userId)}`);
+      if (response.ok && response.data) {
+        const videos = response.data.videos || [];
         setHistory(videos);
         if (!activeStatus && videos.length > 0) {
           setActiveStatus(videos[0]);
@@ -171,11 +171,11 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
     const interval = setInterval(async () => {
       pollCount++;
       try {
-        const res = await fetch(`/api/video-status/${encodeURIComponent(activeRenderId)}`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+        const response = await safeFetchJson<any>(`/api/video-status/${encodeURIComponent(activeRenderId)}`);
+        if (!response.ok || !response.data) {
+          return;
         }
-        const data = await res.json();
+        const data = response.data;
         if (!mounted) return;
 
         setActiveStatus((prev: any) => ({
@@ -260,19 +260,22 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
 
     setLoading(true);
     try {
-      const res = await fetch('/api/generate-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const response = await safeFetchJson<{ renderId: string; isSimulated?: boolean; error?: string; details?: any }>(
+        '/api/generate-video',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(typeof data.error === 'string' ? data.error : 'Грешка при изпращане на задачата.');
-        setErrorDetails(data.details || null);
+      if (!response.ok || !response.data?.renderId) {
+        setError(response.error || 'Грешка при изпращане на задачата за генериране.');
+        setErrorDetails(response.details || null);
         return;
       }
+
+      const data = response.data;
 
       // Успешно получен renderId
       setActiveRenderId(data.renderId);
@@ -300,18 +303,20 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
   const handleManualCheckStatus = async (renderId: string) => {
     setActiveRenderId(renderId);
     try {
-      const res = await fetch(`/api/video-status/${encodeURIComponent(renderId)}`);
-      const data = await res.json();
-      setActiveStatus((prev: any) => ({
-        ...prev,
-        ...data,
-      }));
-      if (data.status === 'completed' || data.status === 'failed' || Boolean(data.videoUrl)) {
-        setPolling(false);
-        fetchHistory();
-        onCreditChange();
-      } else {
-        setPolling(true);
+      const response = await safeFetchJson<any>(`/api/video-status/${encodeURIComponent(renderId)}`);
+      if (response.ok && response.data) {
+        const data = response.data;
+        setActiveStatus((prev: any) => ({
+          ...prev,
+          ...data,
+        }));
+        if (data.status === 'completed' || data.status === 'failed' || Boolean(data.videoUrl)) {
+          setPolling(false);
+          fetchHistory();
+          onCreditChange();
+        } else {
+          setPolling(true);
+        }
       }
     } catch (err) {
       console.error(err);
