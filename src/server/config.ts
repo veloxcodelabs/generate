@@ -16,7 +16,7 @@ export const config = {
 
   // Viggle AI V1 API
   viggle: {
-    apiKey: (process.env.VIGGLE_API_KEY || '').trim(),
+    apiKey: (process.env.VIGGLE_API_KEY || 'sk-SuAlHcvgGMTdtUIQc45SjvCg1bsOgT-3m16osUPzwWXYh').trim(),
     apiBaseUrl: (process.env.VIGGLE_API_BASE_URL || 'https://apis.viggle.ai/v1').trim().replace(/\/$/, ''),
   },
 

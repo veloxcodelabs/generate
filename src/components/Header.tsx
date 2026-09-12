@@ -7,6 +7,7 @@ interface HeaderProps {
   userId: string;
   isStripeConfigured: boolean;
   isViggleConfigured: boolean;
+  viggleAccountBalance?: number | null;
   onRefresh: () => void;
   onResetCredits: () => void;
   activeTab: string;
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   userId,
   isStripeConfigured,
   isViggleConfigured,
+  viggleAccountBalance,
   onRefresh,
   onResetCredits,
   activeTab,
@@ -57,7 +59,11 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-slate-600">•</span>
               <span className="flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-full ${isViggleConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                AI Video API: {isViggleConfigured ? 'Live API' : 'Simulated'}
+                AI Video API: {isViggleConfigured ? (
+                  <span className="text-emerald-300 font-medium">
+                    Live ({viggleAccountBalance !== null && viggleAccountBalance !== undefined ? `${viggleAccountBalance} Viggle cr.` : 'Active'})
+                  </span>
+                ) : 'Simulated'}
               </span>
             </div>
 

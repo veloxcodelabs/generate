@@ -16,6 +16,7 @@ export default function App() {
   const [userId, setUserId] = useState<string>('usr_demo_123');
   const [isStripeConfigured, setIsStripeConfigured] = useState<boolean>(false);
   const [isViggleConfigured, setIsViggleConfigured] = useState<boolean>(false);
+  const [viggleAccountBalance, setViggleAccountBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Зареждане на профила и статуса на бекенда
@@ -28,7 +29,13 @@ export default function App() {
         setIsViggleConfigured(Boolean(healthResponse.data.viggleConfigured));
       }
 
-      // 2. Вземане на текущ потребител
+      // 2. Проверка на реалния Viggle AI баланс
+      const viggleCreditsRes = await safeFetchJson<{ configured?: boolean; balance?: number | null }>('/api/viggle/credits');
+      if (viggleCreditsRes.ok && viggleCreditsRes.data && typeof viggleCreditsRes.data.balance === 'number') {
+        setViggleAccountBalance(viggleCreditsRes.data.balance);
+      }
+
+      // 3. Вземане на текущ потребител
       const userResponse = await safeFetchJson<{ user?: { credits: number; name?: string } }>(
         `/api/user/me?userId=${encodeURIComponent(userId)}`
       );
@@ -72,6 +79,7 @@ export default function App() {
         userId={userId}
         isStripeConfigured={isStripeConfigured}
         isViggleConfigured={isViggleConfigured}
+        viggleAccountBalance={viggleAccountBalance}
         onRefresh={fetchUserData}
         onResetCredits={handleResetCredits}
         activeTab={activeTab}

@@ -121,6 +121,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
   const [t2vQuality, setT2vQuality] = useState<'low' | 'high'>('low');
   const [t2vDuration, setT2vDuration] = useState<number>(5);
   const [t2vAspectRatio, setT2vAspectRatio] = useState<'16:9' | '9:16' | '1:1'>('16:9');
+  const [t2vResolution, setT2vResolution] = useState<'480p' | '768p'>('480p');
 
   // Image to Video състояния
   const [i2vImageUrl, setI2vImageUrl] = useState(IMAGE_TO_VIDEO_PRESETS[0].imageUrl);
@@ -141,15 +142,64 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
   const [history, setHistory] = useState<VideoRenderItem[]>([]);
   const [polling, setPolling] = useState(false);
 
+  // 1. Първоначално зареждане от localStorage (предотвратява празен екран при Vercel Container рестарт)
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem(`viggle_history_${userId}`);
+      if (savedHistory) {
+        const parsed = JSON.parse(savedHistory);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setHistory(parsed);
+          setActiveStatus((prev: any) => prev || parsed[0]);
+        }
+      }
+
+      const savedActive = localStorage.getItem(`viggle_active_render_${userId}`);
+      if (savedActive) {
+        const parsed = JSON.parse(savedActive);
+        if (parsed && parsed.renderId && parsed.status === 'processing') {
+          setActiveRenderId(parsed.renderId);
+          setActiveStatus(parsed);
+          setPolling(true);
+        }
+      }
+    } catch {
+      // Игнорираме грешки при парсване на локалния кеш
+    }
+  }, [userId]);
+
+  // 2. Синхронизиране на историята в localStorage
+  useEffect(() => {
+    if (history.length > 0) {
+      try {
+        localStorage.setItem(`viggle_history_${userId}`, JSON.stringify(history));
+      } catch {}
+    }
+  }, [history, userId]);
+
+  // 3. Синхронизиране на активната задача в localStorage
+  useEffect(() => {
+    if (activeStatus) {
+      try {
+        localStorage.setItem(`viggle_active_render_${userId}`, JSON.stringify(activeStatus));
+      } catch {}
+    }
+  }, [activeStatus, userId]);
+
   // Зареждане на историята от сървъра
   const fetchHistory = async () => {
     try {
       const response = await safeFetchJson<{ videos: VideoRenderItem[] }>(`/api/videos?userId=${encodeURIComponent(userId)}`);
       if (response.ok && response.data) {
         const videos = response.data.videos || [];
-        setHistory(videos);
-        if (!activeStatus && videos.length > 0) {
-          setActiveStatus(videos[0]);
+        if (videos.length > 0) {
+          setHistory(videos);
+          setActiveStatus((prev: any) => {
+            if (!prev) return videos[0];
+            // Ако има текуща задача, я запазваме обновена
+            const found = videos.find((v) => v.renderId === prev.renderId);
+            return found ? { ...prev, ...found } : prev;
+          });
         }
       }
     } catch (e) {
@@ -172,18 +222,20 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
       pollCount++;
       try {
         const response = await safeFetchJson<any>(`/api/video-status/${encodeURIComponent(activeRenderId)}`);
-        if (!response.ok || !response.data) {
+        // При 304 или временна грешка не прекратяваме цикъла
+        if (!response.ok && response.status !== 304) {
           return;
         }
+
         const data = response.data;
-        if (!mounted) return;
+        if (!data || !mounted) return;
 
         setActiveStatus((prev: any) => ({
           ...prev,
           ...data,
         }));
 
-        // Ако статусът е готов или има наличен videoUrl, спираме polling
+        // Ако статусът е готов или неуспешен, или има videoUrl
         if (data.status === 'completed' || data.status === 'failed' || Boolean(data.videoUrl)) {
           setPolling(false);
           fetchHistory();
@@ -230,6 +282,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
         quality: t2vQuality,
         duration_s: t2vDuration,
         aspect_ratio: t2vAspectRatio,
+        resolution: t2vResolution,
       };
     } else if (activeMode === 'image-to-video') {
       if (!i2vImageUrl.trim()) {
@@ -243,6 +296,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
         prompt: i2vPrompt.trim(),
         quality: i2vQuality,
         duration_s: i2vDuration,
+        resolution: '480p',
       };
     } else {
       // Remix
@@ -277,18 +331,22 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
 
       const data = response.data;
 
-      // Успешно получен renderId
-      setActiveRenderId(data.renderId);
-      setActiveStatus({
+      const newRenderItem: VideoRenderItem = {
+        id: `rnd_local_${Date.now()}`,
         renderId: data.renderId,
         mode: activeMode,
         status: 'processing',
         progress: 15,
-        isSimulated: data.isSimulated,
         prompt: activeMode === 'text-to-video' ? textPrompt : activeMode === 'image-to-video' ? i2vPrompt : undefined,
         imageUrl: activeMode === 'image-to-video' ? i2vImageUrl : activeMode === 'remix' ? imageUrl : undefined,
         motionVideoUrl: activeMode === 'remix' ? motionVideoUrl : undefined,
-      });
+        createdAt: new Date().toISOString(),
+      };
+
+      // Успешно получен renderId
+      setActiveRenderId(data.renderId);
+      setActiveStatus(newRenderItem);
+      setHistory((prev) => [newRenderItem, ...prev.filter((p) => p.renderId !== data.renderId)]);
       setPolling(true);
       onCreditChange();
       fetchHistory();
@@ -519,12 +577,12 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                     </div>
                   </div>
 
-                  {/* Controls: Quality, Duration, Aspect Ratio */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                  {/* Controls: Quality, Duration, Aspect Ratio, Resolution */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
                     {/* Quality Choice */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                        Качество (Quality)
+                        Качество
                       </label>
                       <div className="grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-slate-200">
                         <button
@@ -547,7 +605,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                               : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          High (Детайлно)
+                          High (Детайл)
                         </button>
                       </div>
                     </div>
@@ -586,14 +644,14 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                     {/* Aspect Ratio */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                        Формат (Aspect Ratio)
+                        Формат (Aspect)
                       </label>
                       <div className="grid grid-cols-3 gap-1 bg-white p-1 rounded-lg border border-slate-200">
                         <button
                           type="button"
                           onClick={() => setT2vAspectRatio('16:9')}
                           title="16:9 Широкоекранен"
-                          className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
+                          className={`py-1 px-1 rounded text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
                             t2vAspectRatio === '16:9'
                               ? 'bg-indigo-600 text-white shadow-xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -606,7 +664,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                           type="button"
                           onClick={() => setT2vAspectRatio('9:16')}
                           title="9:16 Вертикален (TikTok/Reels)"
-                          className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
+                          className={`py-1 px-1 rounded text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
                             t2vAspectRatio === '9:16'
                               ? 'bg-indigo-600 text-white shadow-xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -619,7 +677,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                           type="button"
                           onClick={() => setT2vAspectRatio('1:1')}
                           title="1:1 Квадратен"
-                          className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
+                          className={`py-1 px-1 rounded text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
                             t2vAspectRatio === '1:1'
                               ? 'bg-indigo-600 text-white shadow-xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -627,6 +685,39 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                         >
                           <Square className="w-3 h-3" />
                           <span>1:1</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Resolution Choice */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                        Резолюция
+                      </label>
+                      <div className="grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => setT2vResolution('480p')}
+                          title="480p - Препоръчително за стандартен план с кредити"
+                          className={`py-1 px-1.5 rounded text-xs font-semibold text-center cursor-pointer transition-all ${
+                            t2vResolution === '480p'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          480p (Оптимално)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setT2vResolution('768p')}
+                          title="768p HD - Изисква допълнителни кредити във Viggle AI"
+                          className={`py-1 px-1.5 rounded text-xs font-semibold text-center cursor-pointer transition-all ${
+                            t2vResolution === '768p'
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          768p (HD)
                         </button>
                       </div>
                     </div>
@@ -1068,6 +1159,31 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                             <span className="truncate max-w-[90px]">Моушън видео</span>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Processing Status Message */}
+                  {activeStatus.status === 'processing' && activeStatus.message && (
+                    <div className="text-xs text-indigo-700 bg-indigo-50/80 p-2.5 rounded-lg border border-indigo-100 flex items-center gap-2">
+                      <RefreshCw className="w-3.5 h-3.5 text-indigo-600 animate-spin shrink-0" />
+                      <span>{activeStatus.message}</span>
+                    </div>
+                  )}
+
+                  {/* Failure Alert Box with Credit Refund Confirmation */}
+                  {activeStatus.status === 'failed' && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 space-y-1.5">
+                      <div className="font-bold flex items-center gap-1.5 text-rose-900">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        Грешка при генерация от Viggle AI
+                      </div>
+                      <p className="text-rose-700 leading-relaxed">
+                        {activeStatus.errorMessage || activeStatus.message || 'Задачата беше отхвърлена от невронната мрежа.'}
+                      </p>
+                      <div className="text-[11px] text-emerald-700 font-medium bg-emerald-50 px-2 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>1 кредит беше автоматично възстановен по Вашия профил.</span>
                       </div>
                     </div>
                   )}

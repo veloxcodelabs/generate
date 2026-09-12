@@ -64,6 +64,7 @@ export interface ViggleStatusResponse {
   videoUrl?: string;
   progress?: number;
   message?: string;
+  errorMessage?: string;
   isSimulated?: boolean;
 }
 
@@ -477,20 +478,20 @@ export class ViggleService {
       return this.simulateStatusProgress(renderId, localRecord);
     }
 
-    // 2. РЕАЛНО ИЗВИКВАНЕ НА VIGGLE AI API (V1) С AXIOS
+    // 2. РЕАЛНО ИЗВИКВАНЕ НА VIGGLE AI API (V1) С WHATWG FETCH
     try {
       const url = `${config.viggle.apiBaseUrl}/videos/${encodeURIComponent(renderId)}`;
       console.log(`[ViggleService] Проверка на статус от ${url}`);
 
-      const response = await axios.get(url, {
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${config.viggle.apiKey}`,
           Accept: 'application/json',
         },
-        timeout: 20000,
+        cache: 'no-store',
       });
 
-      const data = response.data;
+      const data: any = await response.json().catch(() => ({}));
       const rawStatus = (data.status || data.state || 'processing').toLowerCase();
       const videoUrl = data.video_url || data.result_url || data.url || data.output_url || undefined;
 
@@ -512,16 +513,71 @@ export class ViggleService {
         rawStatus === 'error' ||
         rawStatus === 'canceled' ||
         rawStatus === 'cancelled' ||
-        rawStatus === 'rejected'
+        rawStatus === 'rejected' ||
+        Boolean(data.error)
       ) {
         normalizedStatus = 'failed';
       }
 
-      const progress = typeof data.progress === 'number'
-        ? data.progress
-        : normalizedStatus === 'completed'
-        ? 100
-        : 50;
+      // Извличане на детайлно съобщение за грешка при неуспех
+      let viggleErrorMessage: string | undefined;
+      if (data.error) {
+        if (typeof data.error === 'string') {
+          viggleErrorMessage = data.error;
+        } else if (
+          data.error.code === 'INSUFFICIENT_CREDITS' ||
+          (data.error.message && data.error.message.toLowerCase().includes('credit'))
+        ) {
+          viggleErrorMessage =
+            'Недостатъчни кредити във Viggle AI акаунта за тази резолюция. Препоръчва се стандартно качество (480p) или презареждане на кредити във viggle.ai/dashboard.';
+        } else if (data.error.message) {
+          viggleErrorMessage = data.error.message;
+        } else {
+          viggleErrorMessage = JSON.stringify(data.error);
+        }
+      }
+
+      // Ако задачата е неуспешна, възстановяваме удържания потребителски кредит
+      if (normalizedStatus === 'failed') {
+        try {
+          if (localRecord && localRecord.status !== 'failed') {
+            await db.updateUserCredits(localRecord.userId, 1);
+            console.log(`[ViggleService] Възстановен 1 кредит на ${localRecord.userId} за неуспешна задача ${renderId}`);
+          }
+        } catch (creditErr) {
+          console.warn('[ViggleService] Предупреждение при възстановяване на кредит:', creditErr);
+        }
+      }
+
+      // Изчисляване на плавен напредък (прогрес)
+      let progress: number;
+      if (typeof data.progress === 'number') {
+        progress = data.progress;
+      } else if (normalizedStatus === 'completed') {
+        progress = 100;
+      } else if (normalizedStatus === 'failed') {
+        progress = 0;
+      } else {
+        const elapsed = localRecord
+          ? (Date.now() - new Date(localRecord.createdAt).getTime()) / 1000
+          : 12;
+        progress = rawStatus === 'queued'
+          ? Math.min(25, Math.max(10, Math.round(10 + elapsed * 1.5)))
+          : Math.min(92, Math.max(25, Math.round(25 + elapsed * 1.5)));
+      }
+
+      let userMessage = data.message;
+      if (!userMessage) {
+        if (normalizedStatus === 'completed') {
+          userMessage = 'Видеото е генерирано успешно!';
+        } else if (normalizedStatus === 'failed') {
+          userMessage = viggleErrorMessage || 'Генерацията на видеото беше отхвърлена от Viggle AI.';
+        } else if (rawStatus === 'queued') {
+          userMessage = 'Задачата е приета и чака в опашката на Viggle AI...';
+        } else {
+          userMessage = 'Невронният модел генерира кадрите на видеото...';
+        }
+      }
 
       // Обновяване на записа в базата данни
       if (localRecord) {
@@ -529,7 +585,7 @@ export class ViggleService {
           status: normalizedStatus,
           progress,
           videoUrl,
-          errorMessage: data.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : data.message || undefined,
+          errorMessage: viggleErrorMessage || (data.message ? String(data.message) : undefined),
         });
       } else {
         await db.createVideoRender({
@@ -537,14 +593,9 @@ export class ViggleService {
           renderId,
           mode: renderId.startsWith('vid_') ? 'text-to-video' : 'remix',
           status: normalizedStatus,
+          progress,
+          videoUrl,
         });
-        if (normalizedStatus === 'completed' && videoUrl) {
-          await db.updateVideoRender(renderId, {
-            status: normalizedStatus,
-            progress: 100,
-            videoUrl,
-          });
-        }
       }
 
       return {
@@ -552,38 +603,102 @@ export class ViggleService {
         status: normalizedStatus,
         videoUrl,
         progress,
-        message: data.message || (normalizedStatus === 'completed' ? 'Видеото е готово!' : 'Видеото се рендерира...'),
+        message: userMessage,
+        errorMessage: viggleErrorMessage,
         isSimulated: false,
       };
     } catch (err: any) {
-      const axiosErr = err as AxiosError<any>;
-      const viggleData = axiosErr.response?.data;
-      const statusCode = axiosErr.response?.status || err.statusCode || 500;
-
       console.error(
         `Пълна грешка от Viggle AI API (GET /videos/${renderId}):`,
-        JSON.stringify(viggleData || err.message, null, 2)
+        err.message
       );
 
-      const humanMessage = parseViggleErrorMessage(
-        viggleData,
-        err.message || 'Неуспешна проверка на статус от видео API.'
-      );
-
-      // Ако локално имаме запис, връщаме го за отказоустойчивост с ясно съобщение
+      // Ако локално имаме запис, връщаме го за отказоустойчивост
       if (localRecord) {
         return {
           renderId,
           status: localRecord.status,
           videoUrl: localRecord.videoUrl,
           progress: localRecord.progress,
-          message: `Грешка при проверка в реално време: ${humanMessage}`,
+          message: `Грешка при проверка в реално време: ${err.message}`,
           isSimulated: false,
         };
       }
 
-      throw new ViggleApiError(`Неуспешна проверка на статус от видео API: ${humanMessage}`, statusCode, viggleData || err.message);
+      throw new ViggleApiError(`Неуспешна проверка на статус от видео API: ${err.message}`, 500, err.message);
     }
+  }
+
+  /**
+   * Извлича всички видеа на потребителя, като при конфигуриран Viggle акаунт
+   * автоматично синхронизира завършените видеоклипове от облака на Viggle
+   */
+  static async listVideos(userId: string): Promise<VideoRender[]> {
+    const localRenders = await db.listVideoRenders(userId);
+
+    if (!config.isViggleConfigured()) {
+      return localRenders;
+    }
+
+    try {
+      const res = await fetch(`${config.viggle.apiBaseUrl}/videos`, {
+        headers: {
+          Authorization: `Bearer ${config.viggle.apiKey}`,
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      });
+
+      if (res.ok) {
+        const data: any = await res.json().catch(() => ({}));
+        const items = data.items || [];
+
+        // Синхронизираме до 10 най-нови видеа в локалната база
+        for (const item of items.slice(0, 10)) {
+          const existing = await db.getVideoRender(item.id);
+          const isReady = item.status === 'ready' || item.status === 'completed';
+          let videoUrl = existing?.videoUrl;
+
+          // Ако е готово, но нямаме свален URL адрес, го извличаме
+          if (isReady && !videoUrl) {
+            try {
+              const detailRes = await fetch(`${config.viggle.apiBaseUrl}/videos/${encodeURIComponent(item.id)}`, {
+                headers: { Authorization: `Bearer ${config.viggle.apiKey}` },
+                cache: 'no-store',
+              });
+              if (detailRes.ok) {
+                const detailData: any = await detailRes.json();
+                videoUrl = detailData.video_url || detailData.result_url || undefined;
+              }
+            } catch {
+              // Игнорираме грешки при детайл
+            }
+          }
+
+          if (existing) {
+            await db.updateVideoRender(item.id, {
+              status: isReady ? 'completed' : item.status === 'failed' ? 'failed' : 'processing',
+              progress: isReady ? 100 : item.progress ?? existing.progress,
+              videoUrl: videoUrl || existing.videoUrl,
+            });
+          } else {
+            await db.createVideoRender({
+              userId,
+              renderId: item.id,
+              mode: item.id.startsWith('vid_') ? 'text-to-video' : 'remix',
+              status: isReady ? 'completed' : item.status === 'failed' ? 'failed' : 'processing',
+              progress: isReady ? 100 : item.progress ?? 50,
+              videoUrl,
+              createdAt: item.created_at || new Date().toISOString(),
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[ViggleService] Предупреждение при синхронизация на списъка с видеа:', err);
+    }
+
+    return db.listVideoRenders(userId);
   }
 
   /**

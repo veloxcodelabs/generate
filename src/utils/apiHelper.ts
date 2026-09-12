@@ -17,7 +17,27 @@ export async function safeFetchJson<T = any>(
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(url, options);
+    const fetchOptions: RequestInit = {
+      cache: 'no-store',
+      ...options,
+      headers: {
+        'Cache-Control': 'no-cache, no-store',
+        Pragma: 'no-cache',
+        ...options?.headers,
+      },
+    };
+
+    const res = await fetch(url, fetchOptions);
+
+    // 304 Not Modified се счита за успешен, но без ново тяло
+    if (res.status === 304) {
+      return {
+        ok: true,
+        status: 304,
+        data: undefined,
+      };
+    }
+
     const text = await res.text();
 
     let parsedJson: any = null;

@@ -20,3 +20,6 @@ viggleRouter.get('/video-status/:renderId', ViggleController.getVideoStatus);
 
 // Списък с генерираните видеа на потребителя
 viggleRouter.get('/videos', ViggleController.listUserVideos);
+
+// Баланс на кредити от реалния Viggle AI акаунт
+viggleRouter.get('/viggle/credits', ViggleController.getAccountCredits);

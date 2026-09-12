@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { CreditService } from '../services/creditService.ts';
 import { ViggleService } from '../services/viggleService.ts';
 import { db } from '../db/db.ts';
+import { config } from '../config.ts';
 
 export class ViggleController {
   /**
@@ -43,7 +44,8 @@ export class ViggleController {
       const finalQuality: 'low' | 'high' = quality === 'high' ? 'high' : 'low';
       const finalDuration = Number(duration_s || durationSeconds) || 5;
       const finalAspectRatio = aspect_ratio || aspectRatio || '16:9';
-      const finalResolution = resolution || '768p';
+      // По подразбиране 480p, за да не се превишава кредитния баланс във Viggle AI (768p изисква повече кредити)
+      const finalResolution = resolution || (finalQuality === 'high' ? '768p' : '480p');
       const finalBgMode = bg_mode !== undefined ? bg_mode : bgMode;
 
       // Определяне на режима (remix / text-to-video / image-to-video)
@@ -202,6 +204,7 @@ export class ViggleController {
         videoUrl: statusData.videoUrl || null,
         progress: statusData.progress ?? 0,
         message: statusData.message,
+        errorMessage: statusData.errorMessage,
         isSimulated: statusData.isSimulated,
       });
     } catch (error: any) {
@@ -228,8 +231,37 @@ export class ViggleController {
   static async listUserVideos(req: Request, res: Response) {
     try {
       const userId = (req.query.userId as string) || 'usr_demo_123';
-      const renders = await db.listVideoRenders(userId);
+      const renders = await ViggleService.listVideos(userId);
       return res.json({ videos: renders });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * Проверка на реалния баланс на кредити от Viggle AI акаунта
+   * GET /api/viggle/credits
+   */
+  static async getAccountCredits(req: Request, res: Response) {
+    try {
+      if (!config.isViggleConfigured()) {
+        return res.json({ configured: false, balance: null });
+      }
+
+      const resCredits = await fetch(`${config.viggle.apiBaseUrl}/credits`, {
+        headers: {
+          Authorization: `Bearer ${config.viggle.apiKey}`,
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      });
+
+      if (!resCredits.ok) {
+        return res.json({ configured: true, balance: null, status: resCredits.status });
+      }
+
+      const data: any = await resCredits.json().catch(() => ({}));
+      return res.json({ configured: true, balance: data.balance ?? null });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

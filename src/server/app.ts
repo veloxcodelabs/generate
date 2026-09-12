@@ -17,6 +17,10 @@ import { config } from './config.ts';
 export function createExpressApp() {
   const app = express();
 
+  // Деактивиране на ETag генерацията за Express, за да не се връща 304 Not Modified
+  // при периодично запитване (polling) на динамични API ендпойнти като статус на видео и кредити
+  app.set('etag', false);
+
   // На Vercel Serverless среда файловата система в process.cwd() е read-only.
   // Затова при Vercel деплоймънт ползваме /tmp/uploads.
   const uploadsDir = process.env.VERCEL
@@ -47,6 +51,15 @@ export function createExpressApp() {
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
     }
+    next();
+  });
+
+  // Забрана за кеширане на всички /api заявки, за да се гарантира винаги актуална информация
+  app.use('/api', (_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
     next();
   });
 
