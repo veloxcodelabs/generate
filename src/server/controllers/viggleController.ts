@@ -89,14 +89,16 @@ export class ViggleController {
       const finalMotionVideoUrl = rawMotionVideoUrl.startsWith('/') ? `${baseUrl}${rawMotionVideoUrl}` : rawMotionVideoUrl;
 
       // 2. Проверка за кредити (1 кредит за всяка генерация)
-      const hasCredits = await CreditService.hasSufficientCredits(userId, 1);
-      if (!hasCredits) {
-        const user = await db.getUserById(userId);
-        const currentCredits = user ? user.credits : 0;
+      let user = await db.getUserById(userId);
+      if (!user) {
+        user = await db.getOrCreateUser(userId);
+      }
+
+      if (user.credits < 1) {
         return res.status(402).json({
-          error: `Нямате достатъчно кредити за генериране на видео! Текущ баланс: ${currentCredits}. Необходим: 1 кредит.`,
+          error: `Нямате достатъчно кредити за генериране на видео! Текущ баланс: ${user.credits}. Необходим: 1 кредит.`,
           requiredCredits: 1,
-          currentCredits,
+          currentCredits: user.credits,
         });
       }
 

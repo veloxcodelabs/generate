@@ -10,8 +10,10 @@ export class CreditService {
    * Проверява дали даден потребител има поне минималния изискван брой кредити
    */
   static async hasSufficientCredits(userId: string, requiredCredits: number = 1): Promise<boolean> {
-    const user = await db.getUserById(userId);
-    if (!user) return false;
+    let user = await db.getUserById(userId);
+    if (!user) {
+      user = await db.getOrCreateUser(userId);
+    }
     return user.credits >= requiredCredits;
   }
 
@@ -23,9 +25,9 @@ export class CreditService {
       throw new Error('Броят кредити за удържане трябва да бъде положителен.');
     }
 
-    const user = await db.getUserById(userId);
+    let user = await db.getUserById(userId);
     if (!user) {
-      throw new Error(`Потребител с ID "${userId}" не съществува.`);
+      user = await db.getOrCreateUser(userId);
     }
 
     if (user.credits < creditsToDeduct) {
@@ -35,7 +37,7 @@ export class CreditService {
     }
 
     // Удържане на кредитите в базата данни
-    const updatedUser = await db.updateUserCredits(userId, -creditsToDeduct);
+    const updatedUser = await db.updateUserCredits(user.id, -creditsToDeduct);
     return updatedUser;
   }
 

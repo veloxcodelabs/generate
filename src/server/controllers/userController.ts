@@ -174,14 +174,29 @@ export class UserController {
   static async getProfile(req: Request, res: Response) {
     try {
       const userId = (req.query.userId as string) || 'usr_demo_123';
+      const email = (req.query.email as string) || undefined;
+      const name = (req.query.name as string) || undefined;
+
       let user = await db.getUserById(userId);
 
-      if (!user) {
-        user = await db.getOrCreateDefaultUser();
+      if (!user && email) {
+        user = await db.getUserByEmail(email);
       }
 
-      const transactions = await db.listTransactions(userId);
-      const videos = await db.listVideoRenders(userId);
+      if (!user) {
+        if (userId && userId !== 'usr_demo_123') {
+          user = await db.getOrCreateUser(userId, {
+            email: email || `${userId}@user.local`,
+            name: name || 'Потребител',
+            credits: 10,
+          });
+        } else {
+          user = await db.getOrCreateDefaultUser();
+        }
+      }
+
+      const transactions = await db.listTransactions(user.id);
+      const videos = await db.listVideoRenders(user.id);
 
       return res.json({
         user,
@@ -200,11 +215,16 @@ export class UserController {
   static async resetCredits(req: Request, res: Response) {
     try {
       const { userId = 'usr_demo_123', credits = 10 } = req.body;
-      const updatedUser = await db.setCredits(userId, Number(credits));
+      let user = await db.getUserById(userId);
+      if (!user) {
+        user = await db.getOrCreateUser(userId, { credits: Number(credits) });
+      } else {
+        user = await db.setCredits(userId, Number(credits));
+      }
       return res.json({
         success: true,
-        message: `Балансът бе обновен на ${updatedUser.credits} кредита.`,
-        user: updatedUser,
+        message: `Балансът бе обновен на ${user.credits} кредита.`,
+        user,
       });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });

@@ -63,13 +63,21 @@ export default function App() {
 
       // Вземане на данни за текущия потребител
       const activeId = userId || 'usr_demo_123';
-      const userResponse = await safeFetchJson<{ user?: { credits: number; name?: string; email?: string } }>(
-        `/api/user/me?userId=${encodeURIComponent(activeId)}`
+      const queryParams = new URLSearchParams({ userId: activeId });
+      if (currentUser?.email) queryParams.set('email', currentUser.email);
+      if (currentUser?.name) queryParams.set('name', currentUser.name);
+
+      const userResponse = await safeFetchJson<{ user?: { id: string; credits: number; name?: string; email?: string } }>(
+        `/api/user/me?${queryParams.toString()}`
       );
       if (userResponse.ok && userResponse.data?.user) {
-        setCredits(userResponse.data.user.credits);
-        if (userResponse.data.user.name) {
-          setUserName(userResponse.data.user.name);
+        const u = userResponse.data.user;
+        setCredits(u.credits);
+        if (u.name) {
+          setUserName(u.name);
+        }
+        if (u.id && u.id !== userId) {
+          setUserId(u.id);
         }
       }
     } catch (err) {
@@ -107,6 +115,7 @@ export default function App() {
     setCurrentUser(null);
     setUserId('usr_demo_123');
     setUserName('Мартин Георгиев');
+    setCredits(10);
     fetchUserData();
   };
 
