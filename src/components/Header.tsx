@@ -1,5 +1,5 @@
 import React from 'react';
-import { CreditCard, Video, Sparkles, RefreshCw, LogIn, LogOut, UserPlus, Globe, User as UserIcon } from 'lucide-react';
+import { CreditCard, Video, Sparkles, RefreshCw, LogIn, LogOut, UserPlus, Globe, Shield, Terminal } from 'lucide-react';
 import { AuthUser } from './AuthModal.tsx';
 import { useLanguage } from '../i18n/LanguageContext.tsx';
 
@@ -38,91 +38,101 @@ export const Header: React.FC<HeaderProps> = ({
   const isLoggedIn = currentUser && currentUser.authProvider !== 'demo';
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
+    <header className="bg-[#080a10]/80 backdrop-blur-xl border-b border-white/[0.08] text-white sticky top-0 z-40 shadow-2xl transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between py-4 gap-4">
-          {/* Logo & Title */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between py-3.5 gap-3.5">
+          {/* Brand & Digital Architecture Identification */}
+          <div className="flex items-center space-x-3.5">
+            <div className="relative group cursor-pointer" onClick={() => setActiveTab('viggle')}>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-600 to-indigo-800 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-white/20 transition-transform duration-300 group-hover:scale-105">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur-xs opacity-0 group-hover:opacity-40 transition-opacity"></div>
             </div>
+
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold tracking-tight text-white">{t.header.title}</h1>
-                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Node.js Express v1.0
+                <span className="text-base sm:text-lg font-bold tracking-tight text-white font-sans flex items-center gap-1.5">
+                  <span className="font-serif-luxury italic font-normal text-indigo-300">Generate</span>
+                  <span className="tracking-wider">MARTITONY</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-[11px] text-slate-400 tracking-wide font-sans">
                 {t.header.subtitle}
               </p>
             </div>
           </div>
 
-          {/* User & Balance Badge & Auth Controls */}
+          {/* User Controls, Metrics & Authentication */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Language Switcher Button */}
+            {/* Language Switcher */}
             <button
               id="btn-toggle-language"
               onClick={toggleLanguage}
               title={t.header.switchLanguage}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs font-bold transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl border border-white/[0.08] text-xs font-tech-mono font-medium transition-all duration-200 cursor-pointer shadow-xs"
             >
               <Globe className="w-3.5 h-3.5 text-indigo-400" />
               <span>{language === 'bg' ? '🇧🇬 BG' : '🇬🇧 EN'}</span>
             </button>
 
-            {/* Status indicators */}
-            <div className="hidden lg:flex items-center gap-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+            {/* Hardware & Gateway Telemetry */}
+            <div className="hidden lg:flex items-center gap-3 text-[11px] font-tech-mono text-slate-400 bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/[0.06]">
               <span className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isStripeConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                {t.header.stripeStatus}: {isStripeConfigured ? t.header.live : t.header.sandbox}
+                <span className={`w-1.5 h-1.5 rounded-full ${isStripeConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+                <span>STRIPE:</span>
+                <span className={isStripeConfigured ? 'text-emerald-400' : 'text-amber-400'}>
+                  {isStripeConfigured ? t.header.live : t.header.sandbox}
+                </span>
               </span>
-              <span className="text-slate-600">•</span>
+              <span className="text-white/10">|</span>
               <span className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isViggleConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                {t.header.aiVideoStatus}: {isViggleConfigured ? (
-                  <span className="text-emerald-300 font-medium">
-                    {t.header.live} ({viggleAccountBalance !== null && viggleAccountBalance !== undefined ? `${viggleAccountBalance} ${t.header.viggleCr}` : 'Active'})
-                  </span>
-                ) : t.header.simulated}
+                <span className={`w-1.5 h-1.5 rounded-full ${isViggleConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                <span>AI API:</span>
+                <span className={isViggleConfigured ? 'text-emerald-400' : 'text-slate-300'}>
+                  {isViggleConfigured ? (
+                    viggleAccountBalance !== null && viggleAccountBalance !== undefined ? `${viggleAccountBalance} CR` : 'ACTIVE'
+                  ) : t.header.simulated}
+                </span>
               </span>
             </div>
 
-            {/* Credit balance display */}
-            <div className="flex items-center gap-2.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 shadow-xs">
+            {/* Credit Balance Badge */}
+            <div className="flex items-center gap-2.5 bg-gradient-to-r from-white/[0.05] to-white/[0.02] hover:from-white/[0.08] hover:to-white/[0.04] px-3 py-1.5 rounded-xl border border-white/[0.1] shadow-xs transition-all">
               <div className="text-right">
-                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-tight">{t.header.balanceTitle}</div>
-                <div className="text-sm font-bold text-amber-400 flex items-center justify-end gap-1 leading-tight">
+                <div className="text-[9px] uppercase font-tech-mono tracking-widest text-slate-400 leading-tight">
+                  {t.header.balanceTitle}
+                </div>
+                <div className="text-sm font-tech-mono font-bold text-amber-400 flex items-center justify-end gap-1 leading-tight">
                   <span>{credits}</span>
-                  <span className="text-[11px] text-slate-300 font-normal">{t.common.creditsShort}</span>
+                  <span className="text-[10px] text-slate-400 font-normal uppercase">{t.common.creditsShort}</span>
                 </div>
               </div>
               <button
                 id="btn-refresh-balance"
                 onClick={onRefresh}
                 title={t.header.refreshTooltip}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
+                className="p-1 text-slate-400 hover:text-white hover:bg-white/[0.08] rounded-lg transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* AUTHENTICATION CONTROLS: Вход и Регистрация / Профил */}
+            {/* Authentication Badge or Action Buttons */}
             {isLoggedIn ? (
               <div
                 id="user-profile-badge"
-                className="flex items-center gap-2 bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-700 transition-colors"
+                className="flex items-center gap-2 bg-white/[0.04] hover:bg-white/[0.07] px-2.5 py-1.5 rounded-xl border border-white/[0.08] transition-colors"
               >
                 <div className="relative">
                   {currentUser.avatarUrl ? (
                     <img
                       src={currentUser.avatarUrl}
                       alt={currentUser.name}
-                      className="w-7 h-7 rounded-full object-cover border border-indigo-400"
+                      className="w-7 h-7 rounded-full object-cover border border-indigo-400/60 shadow-xs"
                     />
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                       {currentUser.name.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -143,39 +153,37 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="hidden sm:block text-left text-xs max-w-[120px] truncate">
                   <div className="font-semibold text-slate-200 truncate">{currentUser.name}</div>
-                  <div className="text-[10px] text-slate-400 truncate">{currentUser.email}</div>
+                  <div className="text-[10px] text-slate-400 font-tech-mono truncate">{currentUser.email}</div>
                 </div>
 
                 <button
                   id="btn-logout"
                   onClick={onLogout}
                   title={t.header.signOut}
-                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700/60 rounded-lg transition-colors cursor-pointer ml-1"
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer ml-1"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
-                {/* Бутон Вход */}
+              <div className="flex items-center gap-2">
                 <button
                   id="btn-header-login"
                   onClick={() => onOpenAuth('login')}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] rounded-xl border border-white/[0.08] transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <LogIn className="w-3.5 h-3.5 text-slate-400" />
                   <span>{t.header.login}</span>
                 </button>
 
-                {/* Бутон Регистрация */}
                 <button
                   id="btn-header-register"
                   onClick={() => onOpenAuth('register')}
-                  className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 rounded-xl shadow-lg shadow-indigo-500/25 border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>{t.header.register}</span>
-                  <span className="hidden sm:inline-block px-1.5 py-0.2 bg-emerald-500 text-slate-900 rounded-md text-[10px] font-black">
+                  <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-400 text-slate-950 rounded-md text-[10px] font-black font-tech-mono">
                     {t.header.bonusCreditsBadge}
                   </span>
                 </button>
@@ -184,31 +192,32 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <nav className="flex space-x-1 border-t border-slate-800 pt-2 pb-1 overflow-x-auto">
+        {/* Cinematic Tab Navigation Strip */}
+        <nav className="flex space-x-2 border-t border-white/[0.06] pt-2 pb-2 overflow-x-auto">
           <button
             id="nav-viggle"
             onClick={() => setActiveTab('viggle')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'viggle'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-white/[0.1] text-white border border-white/[0.15] shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
             }`}
           >
-            <Video className="w-4 h-4" />
-            {t.header.tabViggle}
+            <Video className={`w-3.5 h-3.5 ${activeTab === 'viggle' ? 'text-indigo-400' : 'text-slate-500'}`} />
+            <span className="font-tech-mono tracking-wide">{t.header.tabViggle}</span>
           </button>
+
           <button
             id="nav-stripe"
             onClick={() => setActiveTab('stripe')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'stripe'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-xs'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
             }`}
           >
-            <CreditCard className="w-4 h-4" />
-            {t.header.tabStripe}
+            <CreditCard className={`w-3.5 h-3.5 ${activeTab === 'stripe' ? 'text-amber-400' : 'text-slate-500'}`} />
+            <span className="font-tech-mono tracking-wide">{t.header.tabStripe}</span>
           </button>
         </nav>
       </div>

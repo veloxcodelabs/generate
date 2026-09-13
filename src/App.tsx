@@ -5,9 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
+import { HeroSection } from './components/HeroSection.tsx';
 import { ViggleStudio } from './components/ViggleStudio.tsx';
 import { StripeCredits } from './components/StripeCredits.tsx';
 import { AuthModal, AuthUser } from './components/AuthModal.tsx';
+import { InteractiveField } from './components/canvas/InteractiveField.tsx';
 import { safeFetchJson } from './utils/apiHelper.ts';
 
 const AUTH_STORAGE_KEY = 'viggle_auth_user';
@@ -25,7 +27,7 @@ export default function App() {
   const [viggleAccountBalance, setViggleAccountBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 1. Инициализация на запазен автентикиран потребител от localStorage
+  // 1. Initial user session retrieval from localStorage
   useEffect(() => {
     try {
       const savedUserStr = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -41,27 +43,27 @@ export default function App() {
         }
       }
     } catch (e) {
-      console.warn('Неуспешно четене на запазена потребителска сесия:', e);
+      console.warn('Error reading saved session:', e);
     }
   }, []);
 
-  // 2. Зареждане на профила и статуса на бекенда
+  // 2. Fetch server health and profile
   const fetchUserData = async () => {
     try {
-      // Проверка на health статуса
+      // Check health
       const healthResponse = await safeFetchJson<{ stripeConfigured?: boolean; viggleConfigured?: boolean }>('/api/health');
       if (healthResponse.ok && healthResponse.data) {
         setIsStripeConfigured(Boolean(healthResponse.data.stripeConfigured));
         setIsViggleConfigured(Boolean(healthResponse.data.viggleConfigured));
       }
 
-      // Проверка на реалния Viggle AI баланс
+      // Check real Viggle AI API balance if configured
       const viggleCreditsRes = await safeFetchJson<{ configured?: boolean; balance?: number | null }>('/api/viggle/credits');
       if (viggleCreditsRes.ok && viggleCreditsRes.data && typeof viggleCreditsRes.data.balance === 'number') {
         setViggleAccountBalance(viggleCreditsRes.data.balance);
       }
 
-      // Вземане на данни за текущия потребител
+      // Sync active user
       const activeId = userId || 'usr_demo_123';
       const queryParams = new URLSearchParams({ userId: activeId });
       if (currentUser?.email) queryParams.set('email', currentUser.email);
@@ -81,7 +83,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error('Грешка при зареждане на потребителски данни:', err);
+      console.error('Error syncing user data:', err);
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ export default function App() {
     fetchUserData();
   }, [userId]);
 
-  // Успешен вход или регистрация (Google / Имейл)
+  // Auth success callback
   const handleAuthSuccess = (user: AuthUser) => {
     setCurrentUser(user);
     setUserId(user.id);
@@ -100,17 +102,17 @@ export default function App() {
     try {
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     } catch (e) {
-      console.warn('Грешка при запазване в localStorage:', e);
+      console.warn('Storage sync error:', e);
     }
     setIsAuthModalOpen(false);
   };
 
-  // Изход от профила
+  // Logout handler
   const handleLogout = () => {
     try {
       localStorage.removeItem(AUTH_STORAGE_KEY);
     } catch (e) {
-      console.warn('Грешка при изчистване на сесията:', e);
+      console.warn('Storage cleanup error:', e);
     }
     setCurrentUser(null);
     setUserId('usr_demo_123');
@@ -124,7 +126,7 @@ export default function App() {
     setIsAuthModalOpen(true);
   };
 
-  // Спомагателно възстановяване на кредити за лесно тестване в предварителен преглед
+  // Reset test credits
   const handleResetCredits = async () => {
     try {
       const response = await safeFetchJson<{ user: { credits: number } }>('/api/user/reset-credits', {
@@ -141,26 +143,50 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Header with Login / Register & User Profile */}
-      <Header
-        credits={credits}
-        userName={userName}
-        userId={userId}
-        currentUser={currentUser}
-        isStripeConfigured={isStripeConfigured}
-        isViggleConfigured={isViggleConfigured}
-        viggleAccountBalance={viggleAccountBalance}
-        onRefresh={fetchUserData}
-        onResetCredits={handleResetCredits}
-        onOpenAuth={handleOpenAuth}
-        onLogout={handleLogout}
-        activeTab={activeTab}
-        setActiveTab={(tab: any) => setActiveTab(tab)}
-      />
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans relative selection:bg-indigo-500 selection:text-white bg-grid-pattern">
+      {/* Interactive WebGL / Canvas Background Mesh */}
+      <InteractiveField />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Subtle Grain & Ambient Lighting Overlay */}
+      <div className="bg-film-grain fixed inset-0 pointer-events-none opacity-30 z-10" aria-hidden="true"></div>
+      <div className="fixed top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0" aria-hidden="true"></div>
+      <div className="fixed bottom-10 right-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-[140px] pointer-events-none z-0" aria-hidden="true"></div>
+
+      {/* Flagship Cinematic Header */}
+      <div className="relative z-40">
+        <Header
+          credits={credits}
+          userName={userName}
+          userId={userId}
+          currentUser={currentUser}
+          isStripeConfigured={isStripeConfigured}
+          isViggleConfigured={isViggleConfigured}
+          viggleAccountBalance={viggleAccountBalance}
+          onRefresh={fetchUserData}
+          onResetCredits={handleResetCredits}
+          onOpenAuth={handleOpenAuth}
+          onLogout={handleLogout}
+          activeTab={activeTab}
+          setActiveTab={(tab: any) => setActiveTab(tab)}
+        />
+      </div>
+
+      {/* Editorial Breathing Hero Section */}
+      <div className="relative z-20">
+        <HeroSection
+          credits={credits}
+          activeTab={activeTab}
+          setActiveTab={(tab) => setActiveTab(tab)}
+          isViggleConfigured={isViggleConfigured}
+          isStripeConfigured={isStripeConfigured}
+          viggleAccountBalance={viggleAccountBalance}
+          onOpenAuth={handleOpenAuth}
+          isLoggedIn={Boolean(currentUser && currentUser.authProvider !== 'demo')}
+        />
+      </div>
+
+      {/* Main Studio Console & Production Ledger Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-20">
         {activeTab === 'viggle' && (
           <ViggleStudio
             credits={credits}
@@ -177,7 +203,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Modal Dialog за Вход и Регистрация (Google / Gmail & Имейл) */}
+      {/* Auth Modal (Google & Password) */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -186,18 +212,26 @@ export default function App() {
         defaultGmail="martivideoproductions2@gmail.com"
       />
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>
-            Node.js (Express) Backend • AI Video Generation (Text-to-Video, Image-to-Video, Motion Remix) • Stripe Checkout & Webhooks
+      {/* Flagship Architectural Footer */}
+      <footer className="relative z-20 bg-[#06080d]/90 border-t border-white/[0.08] py-8 text-xs text-slate-400 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span className="font-tech-mono tracking-wider text-slate-300">
+              GENERATE.MARTITONY.COM // FLAGSHIP ENGINE
+            </span>
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Express REST API</span>
+
+          <div className="text-center font-sans text-slate-400">
+            Node.js (Express) Hybrid Backend • H3 Video Synthesis • Native Spatial Audio • Stripe Cryptographic Webhooks
+          </div>
+
+          <div className="flex items-center gap-4 font-tech-mono text-[11px] text-slate-400">
+            <span>SHA-256 HMAC</span>
             <span>•</span>
-            <span>Google / Gmail Auth</span>
+            <span>REST API</span>
             <span>•</span>
-            <span>Stripe Payments</span>
+            <span className="text-emerald-400">STATUS: 200 OK</span>
           </div>
         </div>
       </footer>

@@ -1,5 +1,10 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState } from 'react';
-import { Mail, Lock, User, Eye, EyeOff, Sparkles, X, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Sparkles, X, CheckCircle2, AlertCircle, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import { safeFetchJson } from '../utils/apiHelper.ts';
 import { useLanguage } from '../i18n/LanguageContext.tsx';
 
@@ -140,26 +145,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     <div
       id="auth-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-300"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         id="auth-modal-card"
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+        className="relative w-full max-w-md bg-[#0b0e17] rounded-2xl shadow-2xl border border-white/[0.12] overflow-hidden"
       >
         {/* Header Ribbon */}
-        <div className="bg-slate-900 text-white px-6 py-5 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-600/30">
+        <div className="bg-white/[0.03] px-6 py-5 flex items-center justify-between border-b border-white/[0.08]">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-white/20">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-base font-bold tracking-tight text-white">
+              <h2 className="text-base font-bold tracking-tight text-white font-sans">
                 {tab === 'login' ? t.auth.loginTitle : t.auth.registerTitle}
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 font-sans">
                 {t.auth.subtitle}
               </p>
             </div>
@@ -168,14 +173,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             id="btn-close-auth-modal"
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.08] rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab switchers: Вход / Регистрация */}
-        <div className="flex border-b border-slate-200 bg-slate-50 p-1">
+        <div className="flex border-b border-white/[0.08] bg-black/40 p-1">
           <button
             id="tab-btn-login"
             type="button"
@@ -183,10 +188,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               setTab('login');
               setError(null);
             }}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
+            className={`flex-1 py-2 text-xs font-tech-mono font-semibold rounded-xl transition-all cursor-pointer text-center ${
               tab === 'login'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white/[0.1] text-white shadow-xs border border-white/[0.15]'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             {t.auth.tabLogin}
@@ -198,14 +203,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               setTab('register');
               setError(null);
             }}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-xs font-tech-mono font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               tab === 'register'
-                ? 'bg-white text-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white/[0.1] text-white shadow-xs border border-white/[0.15]'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             <span>{t.auth.tabRegister}</span>
-            <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-semibold">
+            <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-bold">
               {t.auth.bonusNotice}
             </span>
           </button>
@@ -216,9 +221,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {error && (
             <div
               id="auth-error-alert"
-              className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2"
+              className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-start gap-2 font-tech-mono"
             >
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
@@ -226,31 +231,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {successMsg && (
             <div
               id="auth-success-alert"
-              className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2"
+              className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-tech-mono"
             >
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span className="font-semibold">{successMsg}</span>
             </div>
           )}
 
           {/* 1. ПРИОРИТЕТЕН GMAIL / GOOGLE ВХОД (1-CLICK) */}
           <div className="space-y-2">
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <label className="block text-[10px] font-tech-mono uppercase tracking-widest text-slate-400">
               {t.auth.quickAccessLabel}
             </label>
 
-            {/* Официален Google бутон */}
+            {/* Google button */}
             <button
               id="btn-google-auth-primary"
               type="button"
               disabled={googleLoading || loading}
               onClick={() => handleGoogleAuth(defaultGmail)}
-              className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-xl border border-slate-300 shadow-xs flex items-center justify-center gap-3 transition-all hover:border-slate-400 cursor-pointer disabled:opacity-60"
+              className="w-full py-2.5 px-4 bg-white/[0.05] hover:bg-white/[0.1] text-white font-medium text-xs rounded-xl border border-white/[0.12] shadow-xs flex items-center justify-center gap-3 transition-all hover:border-white/[0.25] cursor-pointer disabled:opacity-50"
             >
               {googleLoading ? (
-                <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
+                <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
               ) : (
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -269,27 +274,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </svg>
               )}
-              <span>
+              <span className="font-tech-mono">
                 {tab === 'login' ? t.auth.googleLogin : t.auth.googleRegister}
               </span>
             </button>
 
-            {/* Бутон за избор на друг Gmail или бърз линк към текущия профил */}
-            <div className="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
-              <span>{t.auth.connectWith} <strong className="text-slate-800">{defaultGmail}</strong></span>
+            {/* Sub text and switch */}
+            <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-1 font-tech-mono">
+              <span>{t.auth.connectWith} <strong className="text-slate-200">{defaultGmail}</strong></span>
               <button
                 type="button"
                 onClick={() => setShowGmailPicker(!showGmailPicker)}
-                className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer underline"
+                className="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer underline"
               >
                 {showGmailPicker ? t.auth.hide : t.auth.differentGmail}
               </button>
             </div>
 
-            {/* Падащо поле за въвеждане на произволен Gmail */}
+            {/* Picker for other Gmail */}
             {showGmailPicker && (
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
-                <label className="block text-[11px] font-bold text-slate-700">
+              <div className="p-3 bg-white/[0.03] border border-white/[0.08] rounded-xl space-y-2 text-xs">
+                <label className="block text-[10px] font-tech-mono text-slate-400 uppercase tracking-wider">
                   {t.auth.enterCustomGmail}
                 </label>
                 <div className="flex gap-2">
@@ -298,13 +303,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder={t.auth.gmailPlaceholder}
                     value={customGmail}
                     onChange={(e) => setCustomGmail(e.target.value)}
-                    className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 px-3 py-1.5 bg-white/[0.05] border border-white/[0.1] rounded-lg text-xs text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-tech-mono placeholder:text-slate-500"
                   />
                   <button
                     type="button"
                     disabled={!customGmail.includes('@')}
                     onClick={() => handleGoogleAuth(customGmail.trim())}
-                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-xs cursor-pointer disabled:opacity-50"
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs cursor-pointer disabled:opacity-50 font-tech-mono"
                   >
                     {t.auth.quickLoginBtn}
                   </button>
@@ -313,42 +318,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
           </div>
 
-          {/* Divider */}
+          {/* Architectural Divider */}
           <div className="relative flex items-center justify-center">
-            <div className="border-t border-slate-200 w-full"></div>
-            <span className="bg-white px-3 text-[11px] text-slate-400 uppercase tracking-wider font-semibold">
+            <div className="border-t border-white/[0.08] w-full"></div>
+            <span className="bg-[#0b0e17] px-3 text-[10px] text-slate-500 uppercase font-tech-mono tracking-widest">
               {t.auth.orWithEmailPassword}
             </span>
-            <div className="border-t border-slate-200 w-full"></div>
+            <div className="border-t border-white/[0.08] w-full"></div>
           </div>
 
           {/* 2. ТРАДИЦИОННА ФОРМА ЗА ИМЕЙЛ И ПАРОЛА */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {tab === 'register' && (
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                <label className="block text-[10px] font-tech-mono text-slate-400 mb-1 uppercase tracking-wider">
                   {t.auth.yourName}
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
                   <input
                     id="auth-input-name"
                     type="text"
                     placeholder={t.auth.namePlaceholder}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    className="w-full pl-9 pr-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-xl text-xs text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-sans placeholder:text-slate-500"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+              <label className="block text-[10px] font-tech-mono text-slate-400 mb-1 uppercase tracking-wider">
                 {t.auth.emailAddress}
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
                 <input
                   id="auth-input-email"
                   type="email"
@@ -356,17 +361,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full pl-9 pr-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-xl text-xs text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-tech-mono placeholder:text-slate-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+              <label className="block text-[10px] font-tech-mono text-slate-400 mb-1 uppercase tracking-wider">
                 {t.auth.password}
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
                 <input
                   id="auth-input-password"
                   type={showPassword ? 'text' : 'password'}
@@ -374,12 +379,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder={t.auth.passwordPlaceholder}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-10 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full pl-9 pr-10 py-2 bg-white/[0.04] border border-white/[0.1] rounded-xl text-xs text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-tech-mono placeholder:text-slate-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -387,8 +392,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {tab === 'register' && (
-              <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-[11px] text-emerald-300 flex items-center gap-2 font-tech-mono">
+                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>{t.auth.freeCreditsCallout}</span>
               </div>
             )}
@@ -397,7 +402,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               id="btn-auth-submit"
               type="submit"
               disabled={loading || googleLoading}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-500/20 border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 font-tech-mono"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -411,7 +416,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </form>
 
           {/* Bottom Switcher */}
-          <div className="text-center pt-2 text-xs text-slate-500">
+          <div className="text-center pt-2 text-xs text-slate-400 font-sans">
             {tab === 'login' ? (
               <span>
                 {t.auth.noAccount}{' '}
@@ -421,7 +426,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     setTab('register');
                     setError(null);
                   }}
-                  className="text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer underline"
+                  className="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer underline font-tech-mono"
                 >
                   {t.auth.registerFree}
                 </button>
@@ -435,7 +440,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     setTab('login');
                     setError(null);
                   }}
-                  className="text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer underline"
+                  className="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer underline font-tech-mono"
                 >
                   {t.auth.loginHere}
                 </button>
