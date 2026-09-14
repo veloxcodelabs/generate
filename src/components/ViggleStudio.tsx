@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Video,
   Sparkles,
@@ -18,6 +18,7 @@ import {
   ImageIcon,
   FileText,
   Volume2,
+  VolumeX,
   Tv,
   Smartphone,
   Square,
@@ -175,6 +176,26 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
   const [history, setHistory] = useState<VideoRenderItem[]>([]);
   const [polling, setPolling] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+
+  // Audio playback state (starts muted by default on launch so user can opt in to sound)
+  const [isMuted, setIsMuted] = useState(true);
+  const videoPlayerRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoPlayerRef.current) {
+      videoPlayerRef.current.muted = isMuted;
+    }
+  }, [isMuted, activeStatus?.videoUrl]);
+
+  const toggleAudio = () => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      if (videoPlayerRef.current) {
+        videoPlayerRef.current.muted = next;
+      }
+      return next;
+    });
+  };
 
   // 1. Initial load from localStorage
   useEffect(() => {
@@ -794,8 +815,27 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
               {activeStatus?.videoUrl && (
                 <div className="flex items-center gap-2">
                   <button
+                    onClick={toggleAudio}
+                    id="btn-toggle-monitor-audio"
+                    className="flex items-center gap-1.5 text-xs font-tech-mono text-slate-300 hover:text-white transition-colors cursor-pointer px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08]"
+                    title={isMuted ? (language === 'bg' ? 'Включи звук' : 'Enable audio') : (language === 'bg' ? 'Заглуши звук' : 'Mute audio')}
+                  >
+                    {isMuted ? (
+                      <>
+                        <VolumeX className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="text-amber-300">{language === 'bg' ? 'Включи звук' : 'Unmute'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-300">{language === 'bg' ? 'Звук активен' : 'Audio on'}</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => handleCopyLink(activeStatus.videoUrl)}
-                    className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs font-tech-mono px-2 py-1"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{copiedUrl ? (language === 'bg' ? 'Копиран!' : 'Copied!') : (language === 'bg' ? 'Копирай линк' : 'Copy Link')}</span>
@@ -805,7 +845,7 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                     target="_blank"
                     rel="noreferrer"
                     download
-                    className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition-colors"
+                    className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition-colors text-xs font-tech-mono px-2 py-1"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>{t.common.download}</span>
@@ -849,16 +889,45 @@ export const ViggleStudio: React.FC<ViggleStudioProps> = ({ credits, userId, onC
                   </div>
                 </div>
               ) : activeStatus?.videoUrl ? (
-                /* Native Video Player */
-                <video
-                  id="active-video-player"
-                  src={activeStatus.videoUrl}
-                  controls
-                  autoPlay
-                  loop
-                  playsInline
-                  className="w-full h-full object-contain"
-                />
+                /* Native Video Player with Muted Autoplay on Launch */
+                <>
+                  <video
+                    ref={videoPlayerRef}
+                    id="active-video-player"
+                    src={activeStatus.videoUrl}
+                    controls
+                    autoPlay
+                    muted={isMuted}
+                    loop
+                    playsInline
+                    onVolumeChange={(e) => {
+                      setIsMuted(e.currentTarget.muted);
+                    }}
+                    className="w-full h-full object-contain"
+                  />
+
+                  {/* Floating Click-to-Enable-Audio Overlay Badge */}
+                  {isMuted && (
+                    <button
+                      onClick={toggleAudio}
+                      id="btn-video-unmute-floating"
+                      className="absolute top-4 left-4 z-20 px-3 py-2 rounded-xl bg-black/80 hover:bg-black/95 backdrop-blur-md border border-amber-500/40 text-white text-xs font-tech-mono flex items-center gap-2.5 shadow-2xl shadow-black/80 transition-all cursor-pointer group/audio hover:scale-105"
+                      title={language === 'bg' ? 'Кликнете за включване на звука' : 'Click to enable audio'}
+                    >
+                      <div className="w-6 h-6 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 group-hover/audio:bg-amber-500/30 transition-colors">
+                        <VolumeX className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                      </div>
+                      <div className="text-left">
+                        <span className="font-semibold text-amber-300 block leading-tight text-[11px]">
+                          {language === 'bg' ? 'Включи звука' : 'Click to enable audio'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block leading-tight font-sans">
+                          {language === 'bg' ? 'Стартирано без звук' : 'Playing without sound'}
+                        </span>
+                      </div>
+                    </button>
+                  )}
+                </>
               ) : (
                 /* Idle Stage Visualizer */
                 <div className="flex flex-col items-center justify-center p-8 text-center space-y-3 text-slate-500">

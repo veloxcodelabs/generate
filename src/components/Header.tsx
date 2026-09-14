@@ -183,9 +183,11 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>{t.header.register}</span>
-                  <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-400 text-slate-950 rounded-md text-[10px] font-black font-tech-mono">
-                    {t.header.bonusCreditsBadge}
-                  </span>
+                  {t.header.bonusCreditsBadge ? (
+                    <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-400 text-slate-950 rounded-md text-[10px] font-black font-tech-mono">
+                      {t.header.bonusCreditsBadge}
+                    </span>
+                  ) : null}
                 </button>
               </div>
             )}

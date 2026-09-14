@@ -107,10 +107,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {!isLoggedIn && (
                 <button
                   onClick={() => onOpenAuth('register')}
-                  className="px-4 py-3 rounded-xl text-xs font-tech-mono text-emerald-300 hover:text-emerald-200 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-2"
+                  className="px-4 py-3 rounded-xl text-xs font-tech-mono text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all cursor-pointer flex items-center gap-2"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{language === 'bg' ? '+1 Безплатен Кредит при Регистрация' : '+1 Free Credit on Sign-up'}</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{language === 'bg' ? 'Създай Акаунт' : 'Create Account'}</span>
                 </button>
               )}
             </div>

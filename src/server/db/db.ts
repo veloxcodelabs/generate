@@ -107,8 +107,8 @@ class InMemoryDatabase {
     for (const u of this.users.values()) {
       if (u.email.toLowerCase() === mainUserEmail) {
         hasMainUser = true;
-        if (u.credits > 1 && u.credits === 10) {
-          u.credits = 1;
+        if (u.credits > 0 && (u.credits === 1 || u.credits === 10)) {
+          u.credits = 0;
         }
         break;
       }
@@ -119,7 +119,7 @@ class InMemoryDatabase {
         id: knownMainUserId,
         email: mainUserEmail,
         name: 'Мартин Георгиев',
-        credits: 1,
+        credits: 0,
         authProvider: 'google',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -246,7 +246,7 @@ class InMemoryDatabase {
       id,
       email: data.email,
       name: data.name || (data.email.split('@')[0] || 'Потребител'),
-      credits: data.credits ?? 1,
+      credits: data.credits ?? 0,
       avatarUrl: data.avatarUrl,
       authProvider: data.authProvider || 'email',
       passwordHash: data.passwordHash,

@@ -34,7 +34,7 @@ export class UserController {
           name: name || normalizedEmail.split('@')[0],
           avatarUrl: avatarUrl || undefined,
           authProvider: 'google',
-          credits: 1, // 1 бонус кредит за нови регистрации
+          credits: 0, // Без безплатни кредити при регистрация
         });
       } else {
         // Обновяване на името или аватара при необходимост
@@ -58,7 +58,7 @@ export class UserController {
         },
         isNew,
         message: isNew
-          ? 'Успешна регистрация с Google! Получихте 1 начален видео кредит.'
+          ? 'Успешна регистрация с Google!'
           : 'Успешен вход с Вашия Google акаунт.',
       });
     } catch (error: any) {
@@ -98,7 +98,7 @@ export class UserController {
         name: name?.trim() || normalizedEmail.split('@')[0],
         passwordHash,
         authProvider: 'email',
-        credits: 1, // 1 бонус кредит при регистрация
+        credits: 0, // Без безплатни кредити при регистрация
       });
 
       return res.status(201).json({
@@ -111,7 +111,7 @@ export class UserController {
           avatarUrl: newUser.avatarUrl,
           authProvider: newUser.authProvider,
         },
-        message: 'Акаунтът е създаден успешно! Получихте 1 бонус кредит.',
+        message: 'Акаунтът е създаден успешно!',
       });
     } catch (error: any) {
       console.error('[UserController] Грешка при регистрация:', error);

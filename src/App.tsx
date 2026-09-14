@@ -126,10 +126,10 @@ export default function App() {
     setIsAuthModalOpen(true);
   };
 
-  // Reset test credits (0 before registration, 1 if registered)
+  // Reset test credits (0 credits)
   const handleResetCredits = async () => {
     try {
-      const targetCredits = currentUser ? 1 : 0;
+      const targetCredits = 0;
       const response = await safeFetchJson<{ user: { credits: number } }>('/api/user/reset-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

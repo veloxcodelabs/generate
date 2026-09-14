@@ -210,9 +210,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }`}
           >
             <span>{t.auth.tabRegister}</span>
-            <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-bold">
-              {t.auth.bonusNotice}
-            </span>
+            {t.auth.bonusNotice ? (
+              <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-bold">
+                {t.auth.bonusNotice}
+              </span>
+            ) : null}
           </button>
         </div>
 
@@ -391,12 +393,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             </div>
 
-            {tab === 'register' && (
+            {tab === 'register' && t.auth.freeCreditsCallout ? (
               <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-[11px] text-emerald-300 flex items-center gap-2 font-tech-mono">
                 <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>{t.auth.freeCreditsCallout}</span>
               </div>
-            )}
+            ) : null}
 
             <button
               id="btn-auth-submit"
