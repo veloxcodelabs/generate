@@ -23,7 +23,7 @@ export const CREDIT_PACKAGES: Record<'small' | 'large', CreditPackage> = {
     name: 'Малък пакет (Starter)',
     description: 'Идеален за бързи тестове и кратки клипове',
     credits: 50,
-    priceInCents: 999, // 9.99 EUR / USD
+    priceInCents: 499, // 4.99 EUR / USD
     currency: 'usd',
     badge: 'Популярен',
   },
@@ -33,7 +33,7 @@ export const CREDIT_PACKAGES: Record<'small' | 'large', CreditPackage> = {
     name: 'Голям пакет (Pro Creator)',
     description: 'Максимална стойност за сериозни проекти и видео продукции',
     credits: 200,
-    priceInCents: 2999, // 29.99 EUR / USD
+    priceInCents: 1499, // 14.99 EUR / USD
     currency: 'usd',
     badge: 'Най-изгоден (-25%)',
   },
@@ -82,25 +82,34 @@ class InMemoryDatabase {
       }
     }
 
-    // 2. Инициализация на демо потребител по подразбиране
+    // 2. Инициализация на демо потребител по подразбиране (0 кредита преди регистрация)
     if (!this.users.has('usr_demo_123')) {
       const defaultUser: User = {
         id: 'usr_demo_123',
-        email: 'creator@example.com',
-        name: 'Мартин Георгиев',
-        credits: 10,
+        email: 'guest@example.com',
+        name: 'Гост',
+        credits: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       this.users.set(defaultUser.id, defaultUser);
+    } else {
+      const demo = this.users.get('usr_demo_123');
+      if (demo) {
+        demo.credits = 0;
+        demo.name = 'Гост';
+      }
     }
 
-    // 3. Предварителна поддръжка за акаунта на потребителя, ако не присъства
+    // 3. Предварителна поддръжка за регистриран акаунт на потребителя
     const mainUserEmail = 'martivideoproductions2@gmail.com';
     let hasMainUser = false;
     for (const u of this.users.values()) {
       if (u.email.toLowerCase() === mainUserEmail) {
         hasMainUser = true;
+        if (u.credits > 1 && u.credits === 10) {
+          u.credits = 1;
+        }
         break;
       }
     }
@@ -110,7 +119,7 @@ class InMemoryDatabase {
         id: knownMainUserId,
         email: mainUserEmail,
         name: 'Мартин Георгиев',
-        credits: 10,
+        credits: 1,
         authProvider: 'google',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -205,7 +214,7 @@ class InMemoryDatabase {
 
     const email = fallbackData?.email || (userId.includes('@') ? userId : `${userId}@user.local`);
     const name = fallbackData?.name || (email.split('@')[0] || 'Потребител');
-    const credits = fallbackData?.credits !== undefined ? fallbackData.credits : 10;
+    const credits = fallbackData?.credits !== undefined ? fallbackData.credits : 0;
 
     const newUser: User = {
       id: userId,
@@ -237,7 +246,7 @@ class InMemoryDatabase {
       id,
       email: data.email,
       name: data.name || (data.email.split('@')[0] || 'Потребител'),
-      credits: data.credits ?? 10,
+      credits: data.credits ?? 1,
       avatarUrl: data.avatarUrl,
       authProvider: data.authProvider || 'email',
       passwordHash: data.passwordHash,
@@ -267,9 +276,9 @@ class InMemoryDatabase {
     if (user) return user;
     return this.createUser({
       id: 'usr_demo_123',
-      email: 'creator@example.com',
-      name: 'Мартин Георгиев',
-      credits: 10,
+      email: 'guest@example.com',
+      name: 'Гост',
+      credits: 0,
     });
   }
 

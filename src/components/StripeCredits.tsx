@@ -127,7 +127,7 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
               </p>
 
               <div className="flex items-baseline gap-1.5 mb-8">
-                <span className="text-4xl font-extrabold font-tech-mono text-white tracking-tight">$9.99</span>
+                <span className="text-4xl font-extrabold font-tech-mono text-white tracking-tight">$4.99</span>
                 <span className="text-xs text-slate-400 font-tech-mono">/ {language === 'bg' ? 'еднократно' : 'one-time'}</span>
               </div>
 
@@ -197,8 +197,8 @@ export const StripeCredits: React.FC<StripeCreditsProps> = ({ userId, onCreditCh
               </p>
 
               <div className="flex items-baseline gap-2 mb-8">
-                <span className="text-4xl font-extrabold font-tech-mono text-amber-400 tracking-tight">$29.99</span>
-                <span className="text-xs text-slate-500 line-through font-tech-mono">$39.99</span>
+                <span className="text-4xl font-extrabold font-tech-mono text-amber-400 tracking-tight">$14.99</span>
+                <span className="text-xs text-slate-500 line-through font-tech-mono">$19.99</span>
                 <span className="text-xs text-slate-400 font-tech-mono">/ {language === 'bg' ? 'еднократно' : 'one-time'}</span>
               </div>
 

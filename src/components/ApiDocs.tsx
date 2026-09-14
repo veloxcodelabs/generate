@@ -228,7 +228,7 @@ stripe trigger checkout.session.completed`;
             <span className="text-xs text-slate-500">Stripe Checkout</span>
           </div>
           <p className="text-xs text-slate-600 mb-4">
-            Генерира платежна сесия за Малък (50 кредита, $9.99) или Голям пакет (200 кредита, $29.99).
+            Генерира платежна сесия за Малък (50 кредита, $4.99) или Голям пакет (200 кредита, $14.99).
           </p>
 
           <div className="bg-slate-950 rounded-xl overflow-hidden border border-slate-800">

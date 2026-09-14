@@ -110,7 +110,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   className="px-4 py-3 rounded-xl text-xs font-tech-mono text-emerald-300 hover:text-emerald-200 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-2"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{language === 'bg' ? '+10 Безплатни Кредита при Вход' : '+10 Free Credits on Sign-up'}</span>
+                  <span>{language === 'bg' ? '+1 Безплатен Кредит при Регистрация' : '+1 Free Credit on Sign-up'}</span>
                 </button>
               )}
             </div>

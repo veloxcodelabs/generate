@@ -39,7 +39,7 @@ model CreditPackage {
   name          String                    // напр. "Малък пакет (50 кредита)"
   description   String?
   credits       Int                       // 50 или 200 кредита
-  priceInCents  Int                       // Цена в центове (999 = $9.99, 2999 = $29.99)
+  priceInCents  Int                       // Цена в центове (499 = $4.99, 1499 = $14.99)
   currency      String        @default("usd")
   stripePriceId String?                   // Опционален Price ID от Stripe
   active        Boolean       @default(true)
@@ -180,7 +180,7 @@ export const DatabaseViewer: React.FC = () => {
           <div className="text-[11px] font-mono text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
             key: "small" | "large"<br/>
             credits: Int (50 / 200)<br/>
-            priceInCents: Int (999 / 2999)
+            priceInCents: Int (499 / 1499)
           </div>
         </div>
 

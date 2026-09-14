@@ -36,7 +36,7 @@ model CreditPackage {
   name          String        // напр. "Малък пакет (50 кредита)"
   description   String?
   credits       Int           // Брой кредити (напр. 50 или 200)
-  priceInCents  Int           // Цена в стотинки/центове (напр. 999 = 9.99 EUR)
+  priceInCents  Int           // Цена в стотинки/центове (напр. 499 = 4.99 USD)
   currency      String        @default("eur")
   stripePriceId String?       // Опционален предварително създаден Price ID в Stripe
   active        Boolean       @default(true)

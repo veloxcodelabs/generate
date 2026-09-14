@@ -1,0 +1,140 @@
+{
+  "users": [
+    {
+      "id": "usr_demo_123",
+      "email": "guest@example.com",
+      "name": "Гост",
+      "credits": 0,
+      "createdAt": "2026-09-13T20:05:38.402Z",
+      "updatedAt": "2026-09-13T20:05:38.402Z"
+    },
+    {
+      "id": "usr_1789205017308_uj6ut",
+      "email": "martivideoproductions2@gmail.com",
+      "name": "Мартин Георгиев",
+      "credits": 1,
+      "authProvider": "google",
+      "createdAt": "2026-09-13T20:05:38.402Z",
+      "updatedAt": "2026-09-13T20:05:38.402Z"
+    }
+  ],
+  "transactions": [],
+  "videoRenders": [
+    {
+      "id": "rnd_local_1789329946642",
+      "userId": "usr_demo_123",
+      "renderId": "vid_0f8e6035-cf7d-4563-86fd-9c8587905970",
+      "mode": "text-to-video",
+      "status": "completed",
+      "progress": 100,
+      "videoUrl": "https://storage.googleapis.com/viggle/h3-video/0f8e6035-cf7d-4563-86fd-9c8587905970/video.mp4?Expires=1789333546&GoogleAccessId=sam2-api-reader%40viggle-website.iam.gserviceaccount.com&Signature=AmrYrAlxZktstAGLVcfo5Fr0UoLmGbqajdvm%2BEvJT%2BZ%2Bdv6zNjzViWglluYMbAYBhCWUdt0Jk73zT0eFUQj4OQGBuVqTzaCTT8ycO263bhdwcw7aJ4MdHxv9Otnrb6Fu43flbgikSz9kfRvZVZuX10lYpk78SRK8anVC2V0cKEwEkBakHqJ0VGZasblnKwoN%2FnDs8uGu0lexRyVsbuFMZot59temKsE9vdiMpzWvNRBpfVU8PxWEvvr6WPxRG4eBGhCwFJPYMzgHIBsMsFI0dOIWUu0Q7fvvQdiCuxbKMXRiumRCf9iLru4Bzzadakz3hwm241E3l2DOrt3hhxGnNw%3D%3D",
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T09:23:56Z",
+      "updatedAt": "2026-09-13T20:39:16.615Z"
+    },
+    {
+      "id": "rnd_local_1789329946486",
+      "userId": "usr_demo_123",
+      "renderId": "vid_41004eab-d989-423d-84d1-77ed136341b0",
+      "mode": "text-to-video",
+      "status": "failed",
+      "progress": 50,
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T09:11:04Z",
+      "updatedAt": "2026-09-13T20:39:16.615Z"
+    },
+    {
+      "id": "rnd_local_1789329946924",
+      "userId": "usr_demo_123",
+      "renderId": "vid_224a5d87-3182-42b2-b7ff-40cfdf30968f",
+      "mode": "text-to-video",
+      "status": "completed",
+      "progress": 100,
+      "videoUrl": "https://storage.googleapis.com/viggle/h3-video/224a5d87-3182-42b2-b7ff-40cfdf30968f/video.mp4?Expires=1789333546&GoogleAccessId=sam2-api-reader%40viggle-website.iam.gserviceaccount.com&Signature=FYPvpiCwst66X2HJgprLyD069HFzq28guEYq0c22gPUMcHu2OWYx7HR8sgY%2FGlV2NGAXIDVRgm0A%2B6%2FNRY2eK1pGKkZoR9vNmxSphYgBJYqLeEIM9AIL4fPyLYTAtRFQrZDXPwrXTgpv1UPjFL9AzroMALGGs%2FbaB8Ied1RcowTTbQGQo%2BqwAUoOaueQt4j40yBo0aRu1Y5RA7%2Fb1%2FCbSPm2OuTGOoHllnZskc2RWmYkZoum6dKY5F42qPH%2F%2Fgsh9DHTkpVZYJ3x57iRUsIZM%2FCAyISr1JCIBGBLPNMoYQ0gxEXlSWw0lau33UX3ETvw7hkoAvCM11Pn9%2Fj9NEeqdw%3D%3D",
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:56:05Z",
+      "updatedAt": "2026-09-13T20:39:16.615Z"
+    },
+    {
+      "id": "rnd_local_1789329946737",
+      "userId": "usr_demo_123",
+      "renderId": "vid_af8465d0-b53a-4b49-8f93-a19516d761d5",
+      "mode": "text-to-video",
+      "status": "failed",
+      "progress": 50,
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:55:02Z",
+      "updatedAt": "2026-09-13T20:39:16.615Z"
+    },
+    {
+      "id": "rnd_local_1789329947182",
+      "userId": "usr_demo_123",
+      "renderId": "vid_19e91230-cb18-4c08-921e-2100daaaf4d4",
+      "mode": "text-to-video",
+      "status": "completed",
+      "progress": 100,
+      "videoUrl": "https://storage.googleapis.com/viggle/h3-video/19e91230-cb18-4c08-921e-2100daaaf4d4/video.mp4?Expires=1789333547&GoogleAccessId=sam2-api-reader%40viggle-website.iam.gserviceaccount.com&Signature=DplE%2FlqOMNqtrb4nsbXfOyw3Qx0cfuts3ETbU7gPaFJhGJonHCgD3%2F%2B1Qxtb3R34jCSRMPWCJFxGqE0jUWDoTLMq%2BzHv%2Bna%2FnZMGXdMUSiwu%2FmhHEswltTay7lf5vJqznaUpaKz8knmTMhR7Lv1CWDxrQoLLMb6TyDl4H39UqKRbeYyU7ZUhFSHwUkwDPPop04r785HNPHUF7k%2BHDHEX3q4TpkcI%2BzCUmE8SbpwAJQDAxMtTSzXOg7ViQ41YAH3vTFTmzH%2FY0NAV1nW%2B1HT7%2FhocbUTcYifELqbq11LyiOG2AaSZgANmXxmR3OMWmQOu7j4Hq3tSxisQ%2F5oo0UEGrQ%3D%3D",
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:43:18Z",
+      "updatedAt": "2026-09-13T20:39:16.616Z"
+    },
+    {
+      "id": "rnd_local_1789329947030",
+      "userId": "usr_demo_123",
+      "renderId": "vid_76ce1650-30c7-4c2c-b268-d18516e28bbe",
+      "mode": "text-to-video",
+      "status": "failed",
+      "progress": 50,
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:43:07Z",
+      "updatedAt": "2026-09-13T20:39:16.616Z"
+    },
+    {
+      "id": "rnd_local_1789329947454",
+      "userId": "usr_demo_123",
+      "renderId": "vid_39f34afb-ae59-478e-b42a-394e3dc0c3c3",
+      "mode": "text-to-video",
+      "status": "completed",
+      "progress": 100,
+      "videoUrl": "https://storage.googleapis.com/viggle/h3-video/39f34afb-ae59-478e-b42a-394e3dc0c3c3/video.mp4?Expires=1789333547&GoogleAccessId=sam2-api-reader%40viggle-website.iam.gserviceaccount.com&Signature=H6bKm2Ipzmwq657U1pTZ7LnkF5xRaRuOcDB06X2i0oJsep9%2FzoTPKrt6GAEhpx%2By5NUgQDZWai6YFCJ7r9wQ6jpU8QUAcotgoKQdiQqLyVqBKUdakegaFAvPaF6jjgTxbiY6UU9KII%2BnCGKY%2FtT4ENCNHLumQ83xBfdycNCkdPOrkjkXZBWZa8YQWaQXgsAfuZe3XoKV5nbfWRa7ODO%2FiEtCPpwzW8lc9Nr5LxgoJ2a9d%2F83huZXO%2BMKYgDdhoEK7tGsh%2BRk5bulYlAmwRo1ljWLl11F%2B4yhlI8zDicNIYCZX5MuzqhTgas83Yc0tO96rum1ldrg46zW0fO7wCi98g%3D%3D",
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:41:44Z",
+      "updatedAt": "2026-09-13T20:39:16.616Z"
+    },
+    {
+      "id": "rnd_local_1789329947282",
+      "userId": "usr_demo_123",
+      "renderId": "vid_bbab19f0-7aff-4e5b-b0e2-be6575620804",
+      "mode": "text-to-video",
+      "status": "failed",
+      "progress": 50,
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:34:31Z",
+      "updatedAt": "2026-09-13T20:39:16.616Z"
+    },
+    {
+      "id": "rnd_local_1789329947812",
+      "userId": "usr_demo_123",
+      "renderId": "vid_58176d1b-b18c-49d2-9c7d-92b760edab78",
+      "mode": "text-to-video",
+      "status": "completed",
+      "progress": 100,
+      "videoUrl": "https://storage.googleapis.com/viggle/h3-video/58176d1b-b18c-49d2-9c7d-92b760edab78/video.mp4?Expires=1789333547&GoogleAccessId=sam2-api-reader%40viggle-website.iam.gserviceaccount.com&Signature=h4ABUIBTFuC1Mpw9yCVSd67S96MmKkQ8HIlsGEaGbWSzx8nqsWmaill9pSFtbHyIVP4H4p8lEA0P0ezpyl%2FG15vtLOJ2qaGACkI1QY0pKC%2Bb97EpVXZNZ%2Bjl10Ou6vQ0A7VpiQDzxBnL0pIUEoOk0LB6HRUmjGhDzYf7XzmjSE8y%2FsPlOCDY7DmCC1UjvFj8uAOCifQdmcBNO9AjgNzUqjosm3AzWGsVs1gQ1EbuSgsF%2BnBjUnmAsnccdpoNbtP%2FNXHKGvaATBAcgeQWLRaMx8Agxf9ZYeYX5nwfxca%2FqtMssVdf%2BMP08ifrDCM%2FxEA6qp5qR729kj9m9Lk4xVfkew%3D%3D",
+      "creditsUsed": 1,
+      "createdAt": "2026-09-12T08:32:50Z",
+      "updatedAt": "2026-09-13T20:39:16.616Z"
+    },
+    {
+      "id": "rnd_local_1789329948087",
+      "userId": "usr_demo_123",
+      "renderId": "vid_7932247a-85c7-451c-9084-10fe084a90ba",
+      "mode": "text-to-video",
+      "status": "completed",
+      "progress": 100,
+      "videoUrl": "https://storage.googleapis.com/viggle/h3-video/7932247a-85c7-451c-9084-10fe084a90ba/video.mp4?Expires=1789333548&GoogleAccessId=sam2-api-reader%40viggle-website.iam.gserviceaccount.com&Signature=b%2FMHHoJ0vcXwNkDg2og4q%2FJ2Qqb1zlt1pwIB%2FbMUxV8%2FcaXXZxTw%2FyLbD7oU3buhKgcj3EG10cQPffdV6RgrFH%2FNoFZBabNUe3h6geOw3IMudiSakwMV6fxtIlIR7SBPjrHhWn%2BXt9Wo519Rkduxts4Ywip9tFfVle6ATueoRrMO0pqfs8wMI9c3dTLahVvOxrSf6ROlf2z8JU26oJOfi5ZJt0CrBX29DbKOtH3QTN%2FZH%2F%2F%2BJlFDpAa9EU%2BFBdpoZ26fNJAfqikeDmHPxBRspi2BphVcFnY9EogToS7cV5WK%2BHj0jeEKJkyl6m3hg%2B3Qqi7bWq7jij%2F8o5Ry3v7VxQ%3D%3D",
+      "creditsUsed": 1,
+      "createdAt": "2026-09-11T13:12:29Z",
+      "updatedAt": "2026-09-13T20:39:16.617Z"
+    }
+  ]
+}

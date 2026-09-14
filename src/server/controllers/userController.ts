@@ -34,7 +34,7 @@ export class UserController {
           name: name || normalizedEmail.split('@')[0],
           avatarUrl: avatarUrl || undefined,
           authProvider: 'google',
-          credits: 10, // 10 бонус кредита за нови регистрации
+          credits: 1, // 1 бонус кредит за нови регистрации
         });
       } else {
         // Обновяване на името или аватара при необходимост
@@ -58,7 +58,7 @@ export class UserController {
         },
         isNew,
         message: isNew
-          ? 'Успешна регистрация с Google! Получихте 10 начални видео кредита.'
+          ? 'Успешна регистрация с Google! Получихте 1 начален видео кредит.'
           : 'Успешен вход с Вашия Google акаунт.',
       });
     } catch (error: any) {
@@ -98,7 +98,7 @@ export class UserController {
         name: name?.trim() || normalizedEmail.split('@')[0],
         passwordHash,
         authProvider: 'email',
-        credits: 10, // 10 бонус кредита при регистрация
+        credits: 1, // 1 бонус кредит при регистрация
       });
 
       return res.status(201).json({
@@ -111,7 +111,7 @@ export class UserController {
           avatarUrl: newUser.avatarUrl,
           authProvider: newUser.authProvider,
         },
-        message: 'Акаунтът е създаден успешно! Получихте 10 бонус кредита.',
+        message: 'Акаунтът е създаден успешно! Получихте 1 бонус кредит.',
       });
     } catch (error: any) {
       console.error('[UserController] Грешка при регистрация:', error);
@@ -188,7 +188,7 @@ export class UserController {
           user = await db.getOrCreateUser(userId, {
             email: email || `${userId}@user.local`,
             name: name || 'Потребител',
-            credits: 10,
+            credits: 0,
           });
         } else {
           user = await db.getOrCreateDefaultUser();
@@ -214,7 +214,7 @@ export class UserController {
    */
   static async resetCredits(req: Request, res: Response) {
     try {
-      const { userId = 'usr_demo_123', credits = 10 } = req.body;
+      const { userId = 'usr_demo_123', credits = 0 } = req.body;
       let user = await db.getUserById(userId);
       if (!user) {
         user = await db.getOrCreateUser(userId, { credits: Number(credits) });

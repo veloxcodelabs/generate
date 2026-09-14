@@ -16,8 +16,8 @@ const AUTH_STORAGE_KEY = 'viggle_auth_user';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'viggle' | 'stripe'>('viggle');
-  const [credits, setCredits] = useState<number>(10);
-  const [userName, setUserName] = useState<string>('Мартин Георгиев');
+  const [credits, setCredits] = useState<number>(0);
+  const [userName, setUserName] = useState<string>('Гост');
   const [userId, setUserId] = useState<string>('usr_demo_123');
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
@@ -116,8 +116,8 @@ export default function App() {
     }
     setCurrentUser(null);
     setUserId('usr_demo_123');
-    setUserName('Мартин Георгиев');
-    setCredits(10);
+    setUserName('Гост');
+    setCredits(0);
     fetchUserData();
   };
 
@@ -126,13 +126,14 @@ export default function App() {
     setIsAuthModalOpen(true);
   };
 
-  // Reset test credits
+  // Reset test credits (0 before registration, 1 if registered)
   const handleResetCredits = async () => {
     try {
+      const targetCredits = currentUser ? 1 : 0;
       const response = await safeFetchJson<{ user: { credits: number } }>('/api/user/reset-credits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, credits: 10 }),
+        body: JSON.stringify({ userId, credits: targetCredits }),
       });
       if (response.ok && response.data?.user) {
         setCredits(response.data.user.credits);
