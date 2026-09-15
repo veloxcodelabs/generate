@@ -1,5 +1,5 @@
 {
-  "name": "Viggle AI & Stripe Credit Backend",
+  "name": "AI Video Studio & Stripe Credit Backend",
   "description": "Full-stack приложение с AI Video API интеграция за Text-to-Video с нативно аудио, Image-to-Video и Character Motion Remix, с кредитна система през Stripe Checkout и Webhooks.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
