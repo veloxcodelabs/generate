@@ -8,22 +8,24 @@ interface LanguageContextType {
   t: typeof translations.en;
 }
 
-const STORAGE_KEY = 'viggle_app_language';
+const STORAGE_KEY = 'app_language';
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Проверяваме дали потребителят вече има запазен избор, по подразбиране започва с 'bg' или 'en'
+  // Default to 'en' when a user visits the website; restore previous selection if explicitly set
   const [language, setLanguageState] = useState<Language>(() => {
     try {
+      // Clear legacy storage key if present from old defaults
+      localStorage.removeItem('viggle_app_language');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === 'en' || saved === 'bg') {
         return saved;
       }
     } catch {
-      // Игнорираме грешки при достъп до localStorage
+      // Ignore errors accessing localStorage
     }
-    return 'bg';
+    return 'en';
   });
 
   const setLanguage = (lang: Language) => {

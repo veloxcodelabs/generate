@@ -17,7 +17,7 @@ const AUTH_STORAGE_KEY = 'viggle_auth_user';
 export default function App() {
   const [activeTab, setActiveTab] = useState<'viggle' | 'stripe'>('viggle');
   const [credits, setCredits] = useState<number>(0);
-  const [userName, setUserName] = useState<string>('Гост');
+  const [userName, setUserName] = useState<string>('Guest');
   const [userId, setUserId] = useState<string>('usr_demo_123');
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
@@ -36,7 +36,7 @@ export default function App() {
         if (savedUser && savedUser.id) {
           setCurrentUser(savedUser);
           setUserId(savedUser.id);
-          setUserName(savedUser.name || 'Потребител');
+          setUserName(savedUser.name || 'User');
           if (typeof savedUser.credits === 'number') {
             setCredits(savedUser.credits);
           }
@@ -116,7 +116,7 @@ export default function App() {
     }
     setCurrentUser(null);
     setUserId('usr_demo_123');
-    setUserName('Гост');
+    setUserName('Guest');
     setCredits(0);
     fetchUserData();
   };
