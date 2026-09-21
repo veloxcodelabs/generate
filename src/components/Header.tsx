@@ -85,16 +85,6 @@ export const Header: React.FC<HeaderProps> = ({
                   {isStripeConfigured ? t.header.live : t.header.sandbox}
                 </span>
               </span>
-              <span className="text-white/10">|</span>
-              <span className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${isViggleConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                <span>AI API:</span>
-                <span className={isViggleConfigured ? 'text-emerald-400' : 'text-slate-300'}>
-                  {isViggleConfigured ? (
-                    viggleAccountBalance !== null && viggleAccountBalance !== undefined ? `${viggleAccountBalance} CR` : 'ACTIVE'
-                  ) : t.header.simulated}
-                </span>
-              </span>
             </div>
 
             {/* Credit Balance Badge */}
